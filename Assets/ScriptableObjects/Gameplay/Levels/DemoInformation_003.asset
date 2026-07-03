@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8748c288ead564ee797a30f8d1a0158f, type: 3}
+  m_Name: DemoInformation_003
+  m_EditorClassIdentifier: Ciga2026.Framework::Ciga2026.Game.Gameplay.InformationDefinition
+  id: DemoInformation_003
+  informationText: "\u4FE1\u606F\u63D0\u4F9B\u8005\uFF1A\u4FA6\u5BDF\u5175\u62A5\u544A\uFF0C\u4ECA\u665A\u57CE\u95E8\u9700\u8981\u5C01\u9501\u3002\u8BF7\u628A\u64AD\u62A5\u91CD\u70B9\u7EC4\u7EC7\u6210\u4E00\u53E5\u8BDD\u3002"
+  availableWordIds:
+  - scout
+  - reported
+  - tonight
+  - gate
+  - blocked
+  - fire
+  answerCombinations:
+  - wordIds: []
+    wordIdPattern: scout/reported/tonight/gate/blocked
+    grade: 0
+    note: "\u4FDD\u7559\u6765\u6E90\u3001\u65F6\u95F4\u3001\u5730\u70B9\u548C\u5904\u7F6E\u3002"
+  - wordIds: []
+    wordIdPattern: tonight/gate/blocked
+    grade: 1
+    note: "\u4FDD\u7559\u6838\u5FC3\u65F6\u95F4\u5730\u70B9\u5904\u7F6E\u3002"
+  - wordIds: []
+    wordIdPattern: gate/blocked
+    grade: 2
+    note: "\u53EA\u4FDD\u7559\u5730\u70B9\u548C\u5904\u7F6E\u3002"

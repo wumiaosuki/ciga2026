@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24225e3d545804d29b1e58fa33a29d3a, type: 3}
+  m_Name: DefaultWordLibrary
+  m_EditorClassIdentifier: Ciga2026.Framework::Ciga2026.Game.Gameplay.WordLibrary
+  wordGroups:
+  - title: "\u4EBA\u7269\u4E0E\u52A8\u4F5C"
+    words:
+    - id: queen
+      text: "\u5973\u738B"
+    - id: says
+      text: "\u8BF4"
+    - id: dragon
+      text: "\u5DE8\u9F99"
+    - id: arrived
+      text: "\u62B5\u8FBE"
+    - id: scout
+      text: "\u4FA6\u5BDF\u5175"
+    - id: reported
+      text: "\u62A5\u544A"
+    - id: merchant
+      text: "\u5546\u4EBA"
+    - id: requests
+      text: "\u8BF7\u6C42"
+  - title: "\u65F6\u95F4\u4E0E\u5730\u70B9"
+    words:
+    - id: tomorrow
+      text: "\u660E\u5929"
+    - id: village
+      text: "\u6751\u5E84"
+    - id: tonight
+      text: "\u4ECA\u665A"
+    - id: gate
+      text: "\u57CE\u95E8"
+    - id: market
+      text: "\u96C6\u5E02"
+    - id: river
+      text: "\u6CB3\u8FB9"
+    - id: dawn
+      text: "\u9ECE\u660E"
+    - id: west
+      text: "\u897F\u4FA7"
+  - title: "\u4E8B\u4EF6\u4E0E\u5904\u7F6E"
+    words:
+    - id: fire
+      text: "\u706B\u60C5"
+    - id: blocked
+      text: "\u5C01\u9501"
+    - id: supplies
+      text: "\u7269\u8D44"
+    - id: shortage
+      text: "\u77ED\u7F3A"
+    - id: evacuate
+      text: "\u64A4\u79BB"
+    - id: citizens
+      text: "\u5C45\u6C11"
+    - id: calm
+      text: "\u5B89\u629A"
+    - id: prepare
+      text: "\u51C6\u5907"
