@@ -10,7 +10,7 @@ namespace Ciga2026.Framework.UI
     /// </summary>
     [DisallowMultipleComponent]
     [AddComponentMenu("Ciga2026/Framework/UI Manager")]
-    public sealed class UIManager : PersistentMonoSingleton<UIManager>
+    public sealed class UIManager : MonoSingleton<UIManager>
     {
         [Header("默认父节点")]
         [SerializeField]
@@ -38,6 +38,11 @@ namespace Ciga2026.Framework.UI
         [Tooltip("系统层根节点。适合放断线提示、调试面板等最高优先级 UI。未绑定时会自动创建。")]
         private Transform systemRoot;
 
+        [Header("UI 资源映射")]
+        [SerializeField]
+        [Tooltip("UI 枚举到 prefab 的映射列表。代码可通过枚举打开对应 UI。")]
+        private List<UIResourceEntry> entrys = new();
+
         [Header("面板行为")]
         [SerializeField]
         [Tooltip("打开面板时是否默认将面板放到同层级最上方。")]
@@ -47,13 +52,30 @@ namespace Ciga2026.Framework.UI
         [Tooltip("释放面板时是否调用 Destroy。关闭该选项后 ReleasePanel 只会取消注册并隐藏对象。")]
         private bool destroyOnRelease = true;
 
+        [Header("默认绑定")]
+        [Tooltip("场景中默认已存在、无需通过 UIManager 加载的 UI 绑定脚本。例如开场 StartMeau。")]
+        public UIBind DefaultBind;
+
         private readonly Dictionary<string, GameObject> panelsById = new();
         private readonly Dictionary<GameObject, string> idsByPanel = new();
+        private readonly Dictionary<string, UIBind> bindsById = new();
+        private readonly Dictionary<UIBind, string> idsByBind = new();
+        private readonly Dictionary<UIResourceType, GameObject> prefabsByResourceType = new();
 
         /// <summary>
         /// 所有已注册面板的只读视图。
         /// </summary>
         public IReadOnlyDictionary<string, GameObject> Panels => panelsById;
+
+        /// <summary>
+        /// 所有已注册 UI 绑定脚本的只读视图。
+        /// </summary>
+        public IReadOnlyDictionary<string, UIBind> Binds => bindsById;
+
+        /// <summary>
+        /// UI 资源映射列表。
+        /// </summary>
+        public IReadOnlyList<UIResourceEntry> Entrys => entrys;
 
         /// <summary>
         /// 初始化 UIManager 并确保默认层级根节点存在。
@@ -67,7 +89,46 @@ namespace Ciga2026.Framework.UI
                 return;
             }
 
+            RebuildEntryCache();
             EnsureLayerRoots();
+            RegisterDefaultBind();
+        }
+
+        /// <summary>
+        /// 根据 UI 资源枚举打开面板。
+        /// </summary>
+        /// <param name="resourceType">UI 资源枚举。</param>
+        /// <param name="parent">指定父节点。传 null 时使用 layer 对应的默认层级根节点。</param>
+        /// <param name="panelId">面板唯一 ID。传空时默认使用枚举名。</param>
+        /// <param name="layer">面板所在 UI 层级；仅在 parent 为空时决定默认父节点。</param>
+        /// <param name="reuseExisting">同 ID 面板已存在时是否复用并显示它。</param>
+        /// <returns>打开后的面板 GameObject；失败时返回 null。</returns>
+        public GameObject OpenPanel(UIResourceType resourceType, Transform parent = null, string panelId = null, UILayer layer = UILayer.Normal, bool reuseExisting = true)
+        {
+            if (!TryGetPrefab(resourceType, out var prefab))
+            {
+                Debug.LogWarning($"UIManager.OpenPanel failed: prefab for '{resourceType}' is not mapped.");
+                return null;
+            }
+
+            var id = string.IsNullOrWhiteSpace(panelId) ? resourceType.ToString() : panelId;
+            return OpenPanel(prefab, parent, id, layer, reuseExisting);
+        }
+
+        /// <summary>
+        /// 根据 UI 资源枚举打开面板，并返回指定组件类型。
+        /// </summary>
+        /// <typeparam name="TPanel">面板上需要获取的组件类型，通常是继承 UIPanel 的脚本。</typeparam>
+        /// <param name="resourceType">UI 资源枚举。</param>
+        /// <param name="parent">指定父节点。传 null 时使用 layer 对应的默认层级根节点。</param>
+        /// <param name="panelId">面板唯一 ID。传空时默认使用枚举名。</param>
+        /// <param name="layer">面板所在 UI 层级。</param>
+        /// <param name="reuseExisting">同 ID 面板已存在时是否复用并显示它。</param>
+        /// <returns>面板上的 TPanel 组件；不存在时返回 null。</returns>
+        public TPanel OpenPanel<TPanel>(UIResourceType resourceType, Transform parent = null, string panelId = null, UILayer layer = UILayer.Normal, bool reuseExisting = true) where TPanel : Component
+        {
+            var panel = OpenPanel(resourceType, parent, panelId, layer, reuseExisting);
+            return panel != null && panel.TryGetComponent<TPanel>(out var component) ? component : null;
         }
 
         /// <summary>
@@ -133,6 +194,32 @@ namespace Ciga2026.Framework.UI
         }
 
         /// <summary>
+        /// 尝试获取指定 UI 资源枚举对应的 prefab。
+        /// </summary>
+        /// <param name="resourceType">UI 资源枚举。</param>
+        /// <param name="prefab">找到的 prefab；未找到时为 null。</param>
+        /// <returns>成功找到有效 prefab 时返回 true。</returns>
+        public bool TryGetPrefab(UIResourceType resourceType, out GameObject prefab)
+        {
+            if (prefabsByResourceType.Count != entrys.Count)
+            {
+                RebuildEntryCache();
+            }
+
+            return prefabsByResourceType.TryGetValue(resourceType, out prefab) && prefab != null;
+        }
+
+        /// <summary>
+        /// 获取指定 UI 资源枚举对应的 prefab。
+        /// </summary>
+        /// <param name="resourceType">UI 资源枚举。</param>
+        /// <returns>找到的 prefab；未配置时返回 null。</returns>
+        public GameObject GetPrefab(UIResourceType resourceType)
+        {
+            return TryGetPrefab(resourceType, out var prefab) ? prefab : null;
+        }
+
+        /// <summary>
         /// 注册一个已经存在于场景中的面板对象。
         /// </summary>
         /// <param name="panelId">面板唯一 ID。后续通过该 ID 查找、显示、隐藏和释放。</param>
@@ -164,6 +251,36 @@ namespace Ciga2026.Framework.UI
             {
                 uiPanel.Initialize(panelId, layer);
             }
+
+            var uiBind = panel.GetComponentInChildren<UIBind>(true);
+
+            if (uiBind != null)
+            {
+                RegisterBind(panelId, uiBind, layer);
+            }
+            else
+            {
+                RemoveBind(panelId);
+            }
+        }
+
+        /// <summary>
+        /// 注册一个已经存在于场景中的 UI 绑定脚本。
+        /// </summary>
+        /// <param name="panelId">面板唯一 ID。</param>
+        /// <param name="bind">要注册的绑定脚本。</param>
+        /// <param name="layer">绑定对象所在 UI 层级。</param>
+        public void RegisterBind(string panelId, UIBind bind, UILayer layer = UILayer.Normal)
+        {
+            if (string.IsNullOrWhiteSpace(panelId) || bind == null)
+            {
+                Debug.LogWarning("UIManager.RegisterBind failed: panelId or bind is invalid.");
+                return;
+            }
+
+            bindsById[panelId] = bind;
+            idsByBind[bind] = panelId;
+            bind.Initialize(panelId, layer);
         }
 
         /// <summary>
@@ -195,6 +312,73 @@ namespace Ciga2026.Framework.UI
         {
             var panel = GetPanel(panelId);
             return panel != null && panel.TryGetComponent<TPanel>(out var component) ? component : null;
+        }
+
+        /// <summary>
+        /// 获取指定 ID 的 UI 绑定脚本。
+        /// </summary>
+        /// <param name="panelId">面板唯一 ID。</param>
+        /// <returns>绑定脚本；不存在或已被销毁时返回 null。</returns>
+        public UIBind GetBind(string panelId)
+        {
+            return !string.IsNullOrWhiteSpace(panelId) && bindsById.TryGetValue(panelId, out var bind) ? bind : null;
+        }
+
+        /// <summary>
+        /// 获取指定 UI 资源枚举对应的绑定脚本。
+        /// </summary>
+        /// <param name="resourceType">UI 资源枚举。</param>
+        /// <returns>绑定脚本；不存在或已被销毁时返回 null。</returns>
+        public UIBind GetBind(UIResourceType resourceType)
+        {
+            return GetBind(resourceType.ToString());
+        }
+
+        /// <summary>
+        /// 获取指定 ID 的 UI 绑定脚本。
+        /// </summary>
+        /// <typeparam name="TBind">绑定脚本类型。</typeparam>
+        /// <param name="panelId">面板唯一 ID。</param>
+        /// <returns>目标绑定脚本；不存在或类型不匹配时返回 null。</returns>
+        public TBind GetBind<TBind>(string panelId) where TBind : UIBind
+        {
+            return GetBind(panelId) as TBind;
+        }
+
+        /// <summary>
+        /// 获取指定 UI 资源枚举对应的绑定脚本。
+        /// </summary>
+        /// <typeparam name="TBind">绑定脚本类型。</typeparam>
+        /// <param name="resourceType">UI 资源枚举。</param>
+        /// <returns>目标绑定脚本；不存在或类型不匹配时返回 null。</returns>
+        public TBind GetBind<TBind>(UIResourceType resourceType) where TBind : UIBind
+        {
+            return GetBind<TBind>(resourceType.ToString());
+        }
+
+        /// <summary>
+        /// 尝试获取指定 ID 的 UI 绑定脚本。
+        /// </summary>
+        /// <typeparam name="TBind">绑定脚本类型。</typeparam>
+        /// <param name="panelId">面板唯一 ID。</param>
+        /// <param name="bind">找到的绑定脚本；未找到时为 null。</param>
+        /// <returns>成功找到且类型匹配时返回 true。</returns>
+        public bool TryGetBind<TBind>(string panelId, out TBind bind) where TBind : UIBind
+        {
+            bind = GetBind<TBind>(panelId);
+            return bind != null;
+        }
+
+        /// <summary>
+        /// 尝试获取指定 UI 资源枚举对应的 UI 绑定脚本。
+        /// </summary>
+        /// <typeparam name="TBind">绑定脚本类型。</typeparam>
+        /// <param name="resourceType">UI 资源枚举。</param>
+        /// <param name="bind">找到的绑定脚本；未找到时为 null。</param>
+        /// <returns>成功找到且类型匹配时返回 true。</returns>
+        public bool TryGetBind<TBind>(UIResourceType resourceType, out TBind bind) where TBind : UIBind
+        {
+            return TryGetBind(resourceType.ToString(), out bind);
         }
 
         /// <summary>
@@ -232,6 +416,16 @@ namespace Ciga2026.Framework.UI
         }
 
         /// <summary>
+        /// 显示或隐藏指定 UI 资源枚举对应的面板。
+        /// </summary>
+        /// <param name="resourceType">UI 资源枚举。</param>
+        /// <param name="visible">true 为显示，false 为隐藏。</param>
+        public void ShowPanel(UIResourceType resourceType, bool visible)
+        {
+            ShowPanel(resourceType.ToString(), visible);
+        }
+
+        /// <summary>
         /// 将指定面板移动到新的 UI 层级。
         /// </summary>
         /// <param name="panelId">面板唯一 ID。</param>
@@ -256,6 +450,11 @@ namespace Ciga2026.Framework.UI
             if (panel.TryGetComponent<UIPanel>(out var uiPanel))
             {
                 uiPanel.SetLayer(layer);
+            }
+
+            if (bindsById.TryGetValue(panelId, out var uiBind) && uiBind != null)
+            {
+                uiBind.SetLayer(layer);
             }
         }
 
@@ -299,6 +498,7 @@ namespace Ciga2026.Framework.UI
             if (panel == null)
             {
                 panelsById.Remove(panelId);
+                RemoveBind(panelId);
                 return false;
             }
 
@@ -309,6 +509,8 @@ namespace Ciga2026.Framework.UI
 
             panelsById.Remove(panelId);
             idsByPanel.Remove(panel);
+
+            RemoveBind(panelId);
 
             if (destroyOnRelease)
             {
@@ -335,6 +537,50 @@ namespace Ciga2026.Framework.UI
             }
 
             return ReleasePanel(panelId);
+        }
+
+        /// <summary>
+        /// 取消注册指定 UI 绑定脚本。
+        /// </summary>
+        /// <param name="bind">绑定脚本。</param>
+        /// <returns>成功找到并取消注册时返回 true。</returns>
+        public bool UnregisterBind(UIBind bind)
+        {
+            if (bind == null || !idsByBind.TryGetValue(bind, out var panelId))
+            {
+                return false;
+            }
+
+            idsByBind.Remove(bind);
+            bindsById.Remove(panelId);
+            return true;
+        }
+
+        /// <summary>
+        /// 按面板 ID 清理 UI 绑定缓存。
+        /// </summary>
+        /// <param name="panelId">面板唯一 ID。</param>
+        private void RemoveBind(string panelId)
+        {
+            if (bindsById.TryGetValue(panelId, out var bind) && bind != null)
+            {
+                idsByBind.Remove(bind);
+            }
+
+            bindsById.Remove(panelId);
+        }
+
+        /// <summary>
+        /// 注册场景中默认已存在的 UI 绑定对象。
+        /// </summary>
+        private void RegisterDefaultBind()
+        {
+            if (DefaultBind == null)
+            {
+                return;
+            }
+
+            RegisterPanel(DefaultBind.gameObject.name, DefaultBind.gameObject, UILayer.Normal, false);
         }
 
         /// <summary>
@@ -418,6 +664,26 @@ namespace Ciga2026.Framework.UI
             StretchToParent(root as RectTransform);
 
             return root;
+        }
+
+        /// <summary>
+        /// 重建 UI 资源映射缓存。
+        /// </summary>
+        private void RebuildEntryCache()
+        {
+            prefabsByResourceType.Clear();
+
+            for (var i = 0; i < entrys.Count; i++)
+            {
+                var entry = entrys[i];
+
+                if (entry == null || entry.ResourceType == UIResourceType.None || entry.Prefab == null)
+                {
+                    continue;
+                }
+
+                prefabsByResourceType[entry.ResourceType] = entry.Prefab;
+            }
         }
 
         /// <summary>

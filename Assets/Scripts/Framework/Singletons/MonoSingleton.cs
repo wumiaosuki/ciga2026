@@ -35,6 +35,8 @@ namespace Ciga2026.Framework.Singletons
 
         protected virtual void Awake()
         {
+            applicationIsQuitting = false;
+
             if (instance != null && instance != this)
             {
                 Destroy(gameObject);
