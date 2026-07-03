@@ -1,0 +1,14 @@
+{
+    "name": "Ciga2026.Framework",
+    "rootNamespace": "Ciga2026.Framework",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
