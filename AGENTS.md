@@ -44,6 +44,8 @@
 - Cinemachine：用于相机跟随、镜头控制、震屏。
 - ProBuilder：用于快速搭建测试关卡和灰盒。
 - DOTween / DOTween Pro：用于 UI、角色、镜头、特效的缓动动画，代码中使用 `DG.Tweening`。
+- UI Particle (`com.coffee.ui-particle`)：用于在 uGUI 中渲染粒子，支持 UI 排序、Mask/RectMask2D、CanvasGroup alpha，不需要额外 Camera、RenderTexture 或 Canvas。
+- Spine (`spine-unity 4.3.95` / `spine-csharp 4.3.36`)：用于 2D 骨骼动画。导出资源优先使用 Spine Editor 4.3.x，运行时代码使用 `Spine.Unity` / `Spine` 命名空间。
 - TextMesh Pro：UI 文本优先使用 TMP。
 - 2D Animation / Aseprite / PSD Importer / Tilemap / SpriteShape：适合 2D 和像素/骨骼/瓦片地图工作流。
 - Timeline：适合过场和技能演出。
@@ -117,6 +119,16 @@
 - UI prefab 可继承 `UIPanel` 获得 `OnShow`、`OnHide`、`OnRelease` 生命周期。
 - 使用 `UILayer` 管理默认层级：`Background`、`Normal`、`Popup`、`Overlay`、`System`。
 - 释放面板使用 `ReleasePanel`，不要手动 Destroy 已注册面板。
+- UI 粒子优先使用 `Coffee.UIExtensions.UIParticle`，把 `UIParticle` 放在父节点，`ParticleSystem` 放在它的子节点。
+- UI 粒子材质优先使用 `UI/Additive` 或 `UI/Default` 一类支持 uGUI/mask 的 shader，避免直接使用普通内置粒子 shader。
+
+### Spine
+
+- 世界/场景内角色优先使用 `Spine.Unity.SkeletonAnimation`。
+- uGUI 内 Spine 角色或头像优先使用 `Spine.Unity.SkeletonGraphic`。
+- 播放动画通常通过 `skeletonAnimation.AnimationState.SetAnimation(...)` / `AddAnimation(...)`。
+- 需要在自定义 asmdef 里直接引用 Spine 类型时，在 asmdef references 中添加 `spine-unity`；不要让框架底层默认强依赖 Spine。
+- Spine 导出版本保持 4.3.x，避免用更高主版本导出导致运行时数据不兼容。
 
 ## 资源和场景操作注意事项
 

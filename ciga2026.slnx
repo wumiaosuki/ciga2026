@@ -1,6 +1,11 @@
 ﻿<Solution>
+  <Project Path="spine-unity-editor.csproj" />
+  <Project Path="spine-unity.csproj" />
   <Project Path="Ciga2026.Framework.csproj" />
   <Project Path="VHierarchy.csproj" />
+  <Project Path="spine-csharp.csproj" />
+  <Project Path="spine-unity-examples.csproj" />
   <Project Path="Assembly-CSharp-firstpass.csproj" />
+  <Project Path="spine-unity-examples-editor.csproj" />
   <Project Path="Assembly-CSharp-Editor-firstpass.csproj" />
 </Solution>
