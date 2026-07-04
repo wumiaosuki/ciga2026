@@ -18,6 +18,22 @@ namespace Ciga2026.Game.Gameplay
         [SerializeField]
         private GradePenaltyConfig gradePenaltyConfig;
 
+        [Header("耐心回复")]
+        [Tooltip("单次评分为 A 时回复的容忍度。")]
+        [Min(0)]
+        [SerializeField]
+        private int gradeARecovery = 5;
+
+        [Tooltip("连续多少次 A 后触发额外回复。小于 2 时按 2 处理。")]
+        [Min(2)]
+        [SerializeField]
+        private int consecutiveAGradeThreshold = 2;
+
+        [Tooltip("达到连续 A 阈值后，每次 A 额外回复的容忍度。")]
+        [Min(0)]
+        [SerializeField]
+        private int consecutiveAGradeRecoveryBonus = 10;
+
         [Header("难度")]
         [Tooltip("第一关默认倒计时时长，单位为秒。")]
         [Min(0.01f)]
@@ -39,6 +55,21 @@ namespace Ciga2026.Game.Gameplay
         /// 评分档位对应的扣分配置。
         /// </summary>
         public GradePenaltyConfig GradePenaltyConfig => gradePenaltyConfig;
+
+        /// <summary>
+        /// 单次评分为 A 时回复的容忍度。
+        /// </summary>
+        public int GradeARecovery => gradeARecovery;
+
+        /// <summary>
+        /// 触发额外回复所需的连续 A 次数。
+        /// </summary>
+        public int ConsecutiveAGradeThreshold => Mathf.Max(2, consecutiveAGradeThreshold);
+
+        /// <summary>
+        /// 达到连续 A 阈值后，每次 A 额外回复的容忍度。
+        /// </summary>
+        public int ConsecutiveAGradeRecoveryBonus => consecutiveAGradeRecoveryBonus;
 
         /// <summary>
         /// 第一关默认倒计时时长，单位为秒。

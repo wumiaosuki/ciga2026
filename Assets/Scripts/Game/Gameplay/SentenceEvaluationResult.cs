@@ -11,13 +11,17 @@ namespace Ciga2026.Game.Gameplay
         /// <param name="isMatched">是否命中任意答案组合。</param>
         /// <param name="grade">命中的评分档位。未命中时为 null。</param>
         /// <param name="tolerancePenalty">本次扣除的容忍度。</param>
-        /// <param name="remainingTolerance">扣除后的剩余容忍度。</param>
+        /// <param name="toleranceRecovery">本次回复的容忍度。</param>
+        /// <param name="consecutiveAGradeCount">当前连续 A 评分次数。</param>
+        /// <param name="remainingTolerance">扣除和回复结算后的剩余容忍度。</param>
         /// <param name="isGameOver">容忍度是否已经降到 0。</param>
         /// <param name="matchedCombination">命中的答案组合。未命中时为 null。</param>
         public SentenceEvaluationResult(
             bool isMatched,
             AnswerGrade? grade,
             int tolerancePenalty,
+            int toleranceRecovery,
+            int consecutiveAGradeCount,
             int remainingTolerance,
             bool isGameOver,
             AnswerCombination matchedCombination)
@@ -25,6 +29,8 @@ namespace Ciga2026.Game.Gameplay
             IsMatched = isMatched;
             Grade = grade;
             TolerancePenalty = tolerancePenalty;
+            ToleranceRecovery = toleranceRecovery;
+            ConsecutiveAGradeCount = consecutiveAGradeCount;
             RemainingTolerance = remainingTolerance;
             IsGameOver = isGameOver;
             MatchedCombination = matchedCombination;
@@ -46,7 +52,17 @@ namespace Ciga2026.Game.Gameplay
         public int TolerancePenalty { get; }
 
         /// <summary>
-        /// 扣除后的剩余容忍度。
+        /// 本次回复的容忍度。
+        /// </summary>
+        public int ToleranceRecovery { get; }
+
+        /// <summary>
+        /// 当前连续 A 评分次数。
+        /// </summary>
+        public int ConsecutiveAGradeCount { get; }
+
+        /// <summary>
+        /// 扣除和回复结算后的剩余容忍度。
         /// </summary>
         public int RemainingTolerance { get; }
 

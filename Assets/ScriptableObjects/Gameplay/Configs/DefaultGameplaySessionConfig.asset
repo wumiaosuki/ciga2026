@@ -14,7 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Ciga2026.Framework::Ciga2026.Game.Gameplay.GameplaySessionConfig
   initialTolerance: 100
   gradePenaltyConfig: {fileID: 11400000, guid: 07cf3b5a4ab174d4dbfb61ef24d8fc8b, type: 2}
-  initialLevelDuration: 10
+  gradeARecovery: 5
+  consecutiveAGradeThreshold: 2
+  consecutiveAGradeRecoveryBonus: 10
+  initialLevelDuration: 100
   levelDurationMultiplierCurve:
     serializedVersion: 2
     m_Curve:

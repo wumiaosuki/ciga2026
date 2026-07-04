@@ -10,7 +10,7 @@ namespace Ciga2026.Game.UI
     /// </summary>
     [RequireComponent(typeof(RectTransform))]
     [RequireComponent(typeof(CanvasGroup))]
-    public sealed class DraggableWordItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+    public sealed class DraggableWordItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler
     {
         [Header("显示")]
         [Tooltip("词语显示文本。")]
@@ -39,9 +39,22 @@ namespace Ciga2026.Game.UI
         /// </summary>
         public WordDropZone CurrentZone { get; private set; }
 
+        /// <summary>
+        /// 当前鼠标悬停的词块。
+        /// </summary>
+        public static DraggableWordItem HoveredItem { get; private set; }
+
         private void Awake()
         {
             EnsureCached();
+        }
+
+        private void OnDisable()
+        {
+            if (HoveredItem == this)
+            {
+                HoveredItem = null;
+            }
         }
 
         /// <summary>
@@ -91,6 +104,21 @@ namespace Ciga2026.Game.UI
             }
         }
 
+        /// <summary>
+        /// 在两个投放区域之间切换词块位置。
+        /// </summary>
+        /// <param name="firstZone">第一个投放区域，通常是词库栏。</param>
+        /// <param name="secondZone">第二个投放区域，通常是输入框。</param>
+        public void ToggleBetweenZones(WordDropZone firstZone, WordDropZone secondZone)
+        {
+            if (firstZone == null || secondZone == null)
+            {
+                return;
+            }
+
+            AttachToZone(CurrentZone == secondZone ? firstZone : secondZone);
+        }
+
         /// <inheritdoc />
         public void OnBeginDrag(PointerEventData eventData)
         {
@@ -132,6 +160,21 @@ namespace Ciga2026.Game.UI
             if (!wasDroppedThisDrag && previousZone != null)
             {
                 AttachToZone(previousZone);
+            }
+        }
+
+        /// <inheritdoc />
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            HoveredItem = this;
+        }
+
+        /// <inheritdoc />
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            if (HoveredItem == this)
+            {
+                HoveredItem = null;
             }
         }
 

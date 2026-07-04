@@ -8,4 +8,5 @@
   <Project Path="Assembly-CSharp-firstpass.csproj" />
   <Project Path="spine-unity-examples-editor.csproj" />
   <Project Path="Assembly-CSharp-Editor-firstpass.csproj" />
+  <Project Path="Ciga2026.Game.Editor.csproj" />
 </Solution>

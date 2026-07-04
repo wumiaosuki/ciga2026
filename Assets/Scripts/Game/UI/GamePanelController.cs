@@ -35,6 +35,11 @@ namespace Ciga2026.Game.UI
         [SerializeField]
         private GameplaySessionConfig sessionConfig;
 
+        [Header("快捷键")]
+        [Tooltip("鼠标悬停在词块上时，按下该 Input System Keyboard 按键会把词块在词库栏和输入框之间切换。默认 spaceKey。")]
+        [SerializeField]
+        private string toggleHoveredWordKey = "spaceKey";
+
         private readonly List<string> submittedWordIds = new();
         private BroadcastGameplaySession session;
         private int currentLevelIndex;
@@ -43,6 +48,10 @@ namespace Ciga2026.Game.UI
         private int displayedTimerCentiseconds = -1;
         private bool isTimerRunning;
         private bool isResolvingSubmission;
+        private static readonly Dictionary<string, System.Reflection.PropertyInfo> KeyboardButtonProperties = new();
+        private static System.Type keyboardType;
+        private static System.Reflection.PropertyInfo currentKeyboardProperty;
+        private static bool inputSystemLookupAttempted;
 
         private void Awake()
         {
@@ -98,11 +107,66 @@ namespace Ciga2026.Game.UI
 
             remainingLevelTime = Mathf.Max(0f, remainingLevelTime - Time.deltaTime);
             RefreshTimerView();
+            HandleWordShortcutInput();
 
             if (remainingLevelTime <= 0f)
             {
                 ResolveSubmission(allowEmptyAnswer: true, isTimeout: true);
             }
+        }
+
+        private void HandleWordShortcutInput()
+        {
+            if (!WasKeyboardButtonPressedThisFrame(toggleHoveredWordKey))
+            {
+                return;
+            }
+
+            var hoveredItem = DraggableWordItem.HoveredItem;
+            if (hoveredItem == null || bind == null)
+            {
+                return;
+            }
+
+            hoveredItem.ToggleBetweenZones(bind.wordLibraryDropZone, bind.inputDropZone);
+        }
+
+        private static bool WasKeyboardButtonPressedThisFrame(string buttonPropertyName)
+        {
+            if (!TryGetInputSystemKeyboard(out var keyboard) || string.IsNullOrWhiteSpace(buttonPropertyName))
+            {
+                return false;
+            }
+
+            if (!KeyboardButtonProperties.TryGetValue(buttonPropertyName, out var buttonProperty))
+            {
+                buttonProperty = keyboardType.GetProperty(buttonPropertyName, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public);
+                KeyboardButtonProperties[buttonPropertyName] = buttonProperty;
+            }
+
+            var buttonControl = buttonProperty?.GetValue(keyboard);
+            if (buttonControl == null)
+            {
+                return false;
+            }
+
+            var wasPressedProperty = buttonControl.GetType().GetProperty("wasPressedThisFrame", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public);
+            return wasPressedProperty?.GetValue(buttonControl) is true;
+        }
+
+        private static bool TryGetInputSystemKeyboard(out object keyboard)
+        {
+            keyboard = null;
+
+            if (!inputSystemLookupAttempted)
+            {
+                inputSystemLookupAttempted = true;
+                keyboardType = System.Type.GetType("UnityEngine.InputSystem.Keyboard, Unity.InputSystem");
+                currentKeyboardProperty = keyboardType?.GetProperty("current", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
+            }
+
+            keyboard = currentKeyboardProperty?.GetValue(null);
+            return keyboard != null;
         }
 
         /// <summary>
@@ -350,10 +414,92 @@ namespace Ciga2026.Game.UI
 
             if (bind.informationText != null)
             {
-                bind.informationText.text = informationDefinition != null ? informationDefinition.InformationText : "未配置本局信息";
+                bind.informationText.richText = true;
+                bind.informationText.text = informationDefinition != null ? BuildHighlightedInformationText() : "未配置本局信息";
             }
 
             SetFeedback(informationDefinition != null ? "拖动词语组成句子后提交。" : "请先配置 InformationDefinition。");
+        }
+
+        private string BuildHighlightedInformationText()
+        {
+            const string highlightStartTag = "<color=#FF3B30>";
+            const string highlightEndTag = "</color>";
+
+            if (informationDefinition == null || wordLibrary == null)
+            {
+                return informationDefinition != null ? informationDefinition.InformationText : string.Empty;
+            }
+
+            var informationText = informationDefinition.InformationText;
+            if (string.IsNullOrEmpty(informationText))
+            {
+                return string.Empty;
+            }
+
+            var highlightWords = new List<string>();
+            foreach (var wordId in informationDefinition.AvailableWordIds)
+            {
+                if (wordLibrary.TryGetWord(wordId, out var word) && !string.IsNullOrWhiteSpace(word.Text) && !highlightWords.Contains(word.Text))
+                {
+                    highlightWords.Add(word.Text);
+                }
+            }
+
+            highlightWords.Sort((left, right) => right.Length.CompareTo(left.Length));
+
+            var result = informationText;
+            foreach (var word in highlightWords)
+            {
+                result = HighlightPlainText(result, word, highlightStartTag, highlightEndTag);
+            }
+
+            return result;
+        }
+
+        private static string HighlightPlainText(string source, string keyword, string startTag, string endTag)
+        {
+            if (string.IsNullOrEmpty(source) || string.IsNullOrEmpty(keyword))
+            {
+                return source;
+            }
+
+            var result = new System.Text.StringBuilder(source.Length);
+            var searchIndex = 0;
+
+            while (searchIndex < source.Length)
+            {
+                var matchIndex = source.IndexOf(keyword, searchIndex, System.StringComparison.Ordinal);
+                if (matchIndex < 0)
+                {
+                    result.Append(source, searchIndex, source.Length - searchIndex);
+                    break;
+                }
+
+                result.Append(source, searchIndex, matchIndex - searchIndex);
+
+                if (IsInsideRichTextTag(source, matchIndex))
+                {
+                    result.Append(keyword);
+                }
+                else
+                {
+                    result.Append(startTag);
+                    result.Append(keyword);
+                    result.Append(endTag);
+                }
+
+                searchIndex = matchIndex + keyword.Length;
+            }
+
+            return result.ToString();
+        }
+
+        private static bool IsInsideRichTextTag(string source, int index)
+        {
+            var lastOpen = source.LastIndexOf('<', Mathf.Max(0, index));
+            var lastClose = source.LastIndexOf('>', Mathf.Max(0, index));
+            return lastOpen > lastClose;
         }
 
         private void RefreshToleranceView()
@@ -478,8 +624,8 @@ namespace Ciga2026.Game.UI
             }
 
             return result.IsGameOver
-                ? $"评分 {result.Grade}，扣除 {result.TolerancePenalty}，容忍度归零。"
-                : $"评分 {result.Grade}，扣除 {result.TolerancePenalty}，剩余 {result.RemainingTolerance}。";
+                ? $"评分 {result.Grade}，扣除 {result.TolerancePenalty}{BuildRecoveryText(result)}，容忍度归零。"
+                : $"评分 {result.Grade}，扣除 {result.TolerancePenalty}{BuildRecoveryText(result)}，剩余 {result.RemainingTolerance}。";
         }
 
         private static string BuildRoundSummaryText(SentenceEvaluationResult result, bool isTimeout)
@@ -490,8 +636,20 @@ namespace Ciga2026.Game.UI
             }
 
             return result.IsMatched
-                ? $"上一关评分 {result.Grade}，扣除 {result.TolerancePenalty}。"
+                ? $"上一关评分 {result.Grade}，扣除 {result.TolerancePenalty}{BuildRecoveryText(result)}。"
                 : $"上一关未通过，扣除 {result.TolerancePenalty}。";
+        }
+
+        private static string BuildRecoveryText(SentenceEvaluationResult result)
+        {
+            if (result.ToleranceRecovery <= 0)
+            {
+                return string.Empty;
+            }
+
+            return result.ConsecutiveAGradeCount >= 2
+                ? $"，连续 A x{result.ConsecutiveAGradeCount}，回复 {result.ToleranceRecovery}"
+                : $"，回复 {result.ToleranceRecovery}";
         }
     }
 }

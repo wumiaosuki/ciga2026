@@ -11,8 +11,12 @@ namespace Ciga2026.Game.Gameplay
     {
         private const int DefaultInitialTolerance = 100;
         private const int DefaultUnmatchedPenalty = 30;
+        private const int DefaultGradeARecovery = 5;
+        private const int DefaultConsecutiveAGradeThreshold = 2;
+        private const int DefaultConsecutiveAGradeRecoveryBonus = 10;
 
         private readonly GameplaySessionConfig sessionConfig;
+        private int consecutiveAGradeCount;
 
         /// <summary>
         /// 使用配置创建玩法会话。
@@ -46,6 +50,7 @@ namespace Ciga2026.Game.Gameplay
         public void Reset()
         {
             CurrentTolerance = InitialTolerance;
+            consecutiveAGradeCount = 0;
         }
 
         /// <summary>
@@ -67,11 +72,14 @@ namespace Ciga2026.Game.Gameplay
             var penalty = isMatched ? GetPenalty(matchedCombination.Grade) : GetUnmatchedPenalty();
 
             ApplyTolerancePenalty(penalty);
+            var recovery = ApplyToleranceRecovery(grade);
 
             return new SentenceEvaluationResult(
                 isMatched,
                 grade,
                 penalty,
+                recovery,
+                consecutiveAGradeCount,
                 CurrentTolerance,
                 IsGameOver,
                 matchedCombination);
@@ -107,6 +115,27 @@ namespace Ciga2026.Game.Gameplay
                 : DefaultUnmatchedPenalty;
         }
 
+        private int GetGradeARecovery()
+        {
+            return sessionConfig != null
+                ? Mathf.Max(0, sessionConfig.GradeARecovery)
+                : DefaultGradeARecovery;
+        }
+
+        private int GetConsecutiveAGradeThreshold()
+        {
+            return sessionConfig != null
+                ? Mathf.Max(2, sessionConfig.ConsecutiveAGradeThreshold)
+                : DefaultConsecutiveAGradeThreshold;
+        }
+
+        private int GetConsecutiveAGradeRecoveryBonus()
+        {
+            return sessionConfig != null
+                ? Mathf.Max(0, sessionConfig.ConsecutiveAGradeRecoveryBonus)
+                : DefaultConsecutiveAGradeRecoveryBonus;
+        }
+
         private static int GetDefaultPenalty(AnswerGrade grade)
         {
             return grade switch
@@ -121,6 +150,26 @@ namespace Ciga2026.Game.Gameplay
         private void ApplyTolerancePenalty(int penalty)
         {
             CurrentTolerance = Mathf.Max(0, CurrentTolerance - Mathf.Max(0, penalty));
+        }
+
+        private int ApplyToleranceRecovery(AnswerGrade? grade)
+        {
+            if (grade != AnswerGrade.A || IsGameOver)
+            {
+                consecutiveAGradeCount = 0;
+                return 0;
+            }
+
+            consecutiveAGradeCount++;
+
+            var recovery = GetGradeARecovery();
+            if (consecutiveAGradeCount >= GetConsecutiveAGradeThreshold())
+            {
+                recovery += GetConsecutiveAGradeRecoveryBonus();
+            }
+
+            CurrentTolerance = Mathf.Min(InitialTolerance, CurrentTolerance + recovery);
+            return recovery;
         }
     }
 }
