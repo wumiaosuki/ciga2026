@@ -218,7 +218,7 @@ namespace Ciga2026.Game.Editor
                 return new List<T>();
             }
 
-            var lines = File.ReadAllLines(path, Encoding.UTF8);
+            var lines = ReadCsvLines(path, report);
             if (lines.Length < 4)
             {
                 report.Error($"表行数不足：{path}");
@@ -240,6 +240,41 @@ namespace Ciga2026.Game.Editor
             }
 
             return results;
+        }
+
+        private static string[] ReadCsvLines(string path, ImportReport report)
+        {
+            var bytes = File.ReadAllBytes(path);
+            var text = DecodeCsvText(path, bytes, report);
+            return text.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
+        }
+
+        private static string DecodeCsvText(string path, byte[] bytes, ImportReport report)
+        {
+            try
+            {
+                return new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true)
+                    .GetString(bytes)
+                    .TrimStart('\uFEFF');
+            }
+            catch (DecoderFallbackException)
+            {
+                var fallbackEncoding = GetChineseCsvEncoding();
+                report.Info($"表格编码不是 UTF-8，使用 {fallbackEncoding.WebName} 读取：{path}");
+                return fallbackEncoding.GetString(bytes).TrimStart('\uFEFF');
+            }
+        }
+
+        private static Encoding GetChineseCsvEncoding()
+        {
+            try
+            {
+                return Encoding.GetEncoding("GB18030");
+            }
+            catch (ArgumentException)
+            {
+                return Encoding.GetEncoding(936);
+            }
         }
 
         private static List<string> ParseCsvLine(string line)

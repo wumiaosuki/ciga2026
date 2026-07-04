@@ -186,14 +186,15 @@ namespace Ciga2026.Game.Gameplay
                 return 0;
             }
 
+            consecutiveAGradeCount = grade == AnswerGrade.A ? consecutiveAGradeCount + 1 : 0;
+
             var recovery = grade switch
             {
-                AnswerGrade.A => GetGradeARecovery(),
+                AnswerGrade.A => GetGradeARecovery()
+                    + (consecutiveAGradeCount >= GetConsecutiveAGradeThreshold() ? GetConsecutiveAGradeRecoveryBonus() : 0),
                 AnswerGrade.B => GetGradeBRecovery(),
                 _ => 0
             };
-
-            consecutiveAGradeCount = grade == AnswerGrade.A ? consecutiveAGradeCount + 1 : 0;
 
             CurrentTolerance = Mathf.Min(InitialTolerance, CurrentTolerance + recovery);
             return recovery;

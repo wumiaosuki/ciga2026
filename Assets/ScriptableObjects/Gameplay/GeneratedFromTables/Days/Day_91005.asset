@@ -14,12 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Ciga2026.Framework::Ciga2026.Game.Gameplay.DayDefinition
   title: "\u5173\u5361 91005"
   levels:
-  - {fileID: 11400000, guid: 9441775972cdf49f6bc01f2d1b721bd4, type: 2}
-  - {fileID: 11400000, guid: d4e0914b77e6a4ebb8090ab1e02599f2, type: 2}
-  - {fileID: 11400000, guid: 7453598c5ba0142769191a6d8f33b69f, type: 2}
-  - {fileID: 11400000, guid: e0b585a3f53f74a559c511686419ccf7, type: 2}
-  - {fileID: 11400000, guid: d85632f28204045a0b56cb8a9c740c04, type: 2}
-  - {fileID: 11400000, guid: 20901b7969b834bfa825be546414e37a, type: 2}
-  - {fileID: 11400000, guid: e5fa79ee0823c45d0883dcbc1c86f500, type: 2}
-  - {fileID: 11400000, guid: c907aeecce369487ebdb3b720ddbcd9d, type: 2}
-  - {fileID: 11400000, guid: 8f0974b9e069643ea80bb174e82635c8, type: 2}
+  - {fileID: 11400000, guid: 2c7ba9730c2a74ed499e7615cf1d39ba, type: 2}
+  - {fileID: 11400000, guid: 7938465edb6ca4f5081b0bb33c733f5c, type: 2}
+  - {fileID: 11400000, guid: 7e680a46ecb194cde903a6a1f895eddb, type: 2}
+  - {fileID: 11400000, guid: 1d55a8640c25446e9813fc113d94607d, type: 2}

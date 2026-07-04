@@ -252,10 +252,13 @@ namespace Ciga2026.Game.UI
                 return;
             }
 
-            session.ApplyWordSelectionPenalty(entry.TolerancePenalty);
+            var isCorrectChoice = IsCorrectChoice(choiceSet, entry);
+            var effectivePenalty = GetEffectiveSelectionPenalty(choiceSet, entry);
+
+            session.ApplyWordSelectionPenalty(effectivePenalty);
             GameAudioPlayer.PlayRandomVoice(sessionConfig);
-            GameAudioPlayer.PlayPenaltyWarningIfNeeded(sessionConfig, entry.TolerancePenalty);
-            AppendSelectedWord(entry);
+            GameAudioPlayer.PlayPenaltyWarningIfNeeded(sessionConfig, effectivePenalty);
+            AppendSelectedWord(entry, isCorrectChoice);
             wordEntriesByItem.Remove(item);
             choiceSetsByItem.Remove(item);
             RemoveChoiceSetFromLibrary(choiceSet, item);
@@ -264,18 +267,18 @@ namespace Ciga2026.Game.UI
             RefillVisibleChoiceSets();
             RefreshToleranceView();
             RefreshSubmitInteractable();
-            ShakeInputTextIfWrong(entry);
+            ShakeInputTextIfWrong(isCorrectChoice);
 
             if (session.IsGameOver)
             {
-                SetFeedback($"选择“{GetWordText(entry)}”，扣除 {entry.TolerancePenalty}，容忍度归零。");
+                SetFeedback($"选择“{GetWordText(entry)}”，扣除 {effectivePenalty}，容忍度归零。");
                 SetSubmitInteractable(false);
                 ShowFailurePanel();
                 return;
             }
 
             RefreshSelectionTimerAfterChoice();
-            SetFeedback($"选择“{GetWordText(entry)}”，扣除 {entry.TolerancePenalty}，本关累计扣除 {session.CurrentRoundPenalty}。");
+            SetFeedback($"选择“{GetWordText(entry)}”，扣除 {effectivePenalty}，本关累计扣除 {session.CurrentRoundPenalty}。");
         }
 
         /// <summary>
@@ -665,7 +668,7 @@ namespace Ciga2026.Game.UI
             }
         }
 
-        private void AppendSelectedWord(WordChoiceEntry entry)
+        private void AppendSelectedWord(WordChoiceEntry entry, bool isCorrectChoice)
         {
             if (entry == null)
             {
@@ -675,7 +678,7 @@ namespace Ciga2026.Game.UI
             selectedWordIds.Add(entry.WordId);
 
             var wordText = $"<u>{EscapeRichText(GetWordText(entry))}</u>";
-            if (entry.TolerancePenalty > 0)
+            if (!isCorrectChoice)
             {
                 wordText = $"<color={wrongWordColor}>{wordText}</color>";
             }
@@ -702,9 +705,9 @@ namespace Ciga2026.Game.UI
             RefreshInputText();
         }
 
-        private void ShakeInputTextIfWrong(WordChoiceEntry entry)
+        private void ShakeInputTextIfWrong(bool isCorrectChoice)
         {
-            if (entry == null || entry.TolerancePenalty <= 0 || bind == null || bind.inputText == null)
+            if (isCorrectChoice || bind == null || bind.inputText == null)
             {
                 return;
             }
@@ -723,6 +726,24 @@ namespace Ciga2026.Game.UI
             }
 
             inputTextShakeCoroutine = StartCoroutine(ShakeInputText(inputTextRect));
+        }
+
+        private static int GetEffectiveSelectionPenalty(WordChoiceSet choiceSet, WordChoiceEntry entry)
+        {
+            if (entry == null || IsCorrectChoice(choiceSet, entry))
+            {
+                return 0;
+            }
+
+            return entry.TolerancePenalty;
+        }
+
+        private static bool IsCorrectChoice(WordChoiceSet choiceSet, WordChoiceEntry entry)
+        {
+            return choiceSet != null
+                && entry != null
+                && choiceSet.Choices.Count > 0
+                && ReferenceEquals(choiceSet.Choices[0], entry);
         }
 
         private IEnumerator ShakeInputText(RectTransform target)

@@ -13,96 +13,104 @@ MonoBehaviour:
   m_Name: News_1018
   m_EditorClassIdentifier: Ciga2026.Framework::Ciga2026.Game.Gameplay.InformationDefinition
   id: 1018
-  informationText: "\u516C\u4EA4\u683C\u52D2\u5E02\u65B0\u589E\u5341\u6761\u7535\u8F66\u7EBF\u8DEF\uFF0C\u5B9E\u9645\u4EC5\u5F00\u901A\u4E24\u6761\uFF0C\u5176\u4F59\u4EC5\u5B58\u4E8E\u5BA3\u4F20\u56FE\uFF0C\u5E02\u6C11\u627E\u7EBF\u9760\u8111\u8865\u8FD0\u6C14\u3002"
+  informationText: '&bgp_02'
   relatedWordCount: 1
   choiceSets:
-  - title: "1. \u516C\u4EA4\u683C\u52D2\u5E02\u5B98\u5BA3\u65B0\u589E\u5341\u6761\u7535\u8F66\u7EBF\u8DEF"
+  - title: "1. \u603B\u4E66\u8BB0"
     choices:
-    - wordId: 100186
-      displayText: "\u516C\u4EA4\u683C\u52D2\u5E02\u5B98\u5BA3\u65B0\u589E\u5341\u6761\u7535\u8F66\u7EBF\u8DEF"
-      tolerancePenalty: 0
+    - wordId: 100255
+      displayText: "\u603B\u4E66\u8BB0"
+      tolerancePenalty: 10
       note: "\u6807\u51C6\u9009\u8BCD"
-    - wordId: 355
-      displayText: 1345
+    - wordId: 409
+      displayText: "\u8001\u53D8\u6001"
       tolerancePenalty: 10
-      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100186"
-    - wordId: 356
-      displayText: 1346
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100255"
+    - wordId: 410
+      displayText: "\u8001\u5403\u5BB6"
       tolerancePenalty: 10
-      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100186"
-    - wordId: 357
-      displayText: 1347
-      tolerancePenalty: 10
-      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100186"
-  - title: "2. \u5B9E\u9645\u4EC5\u4E24\u6761\u7EBF\u8DEF\u5F00\u901A\u8FD0\u8425"
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100255"
+  - title: "1. \u4EB2\u5207\u63A5\u89C1\u4E86"
     choices:
-    - wordId: 100187
-      displayText: "\u5B9E\u9645\u4EC5\u4E24\u6761\u7EBF\u8DEF\u5F00\u901A\u8FD0\u8425"
-      tolerancePenalty: 0
+    - wordId: 100256
+      displayText: "\u4EB2\u5207\u63A5\u89C1\u4E86"
+      tolerancePenalty: 10
       note: "\u6807\u51C6\u9009\u8BCD"
-    - wordId: 358
-      displayText: 1348
+    - wordId: 411
+      displayText: "\u6FC0\u60C5\u63A5\u89E6\u4E86"
       tolerancePenalty: 10
-      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100187"
-    - wordId: 359
-      displayText: 1349
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100256"
+    - wordId: 412
+      displayText: "\u72C2\u70ED\u6B22\u8FCE\u4E86"
       tolerancePenalty: 10
-      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100187"
-    - wordId: 360
-      displayText: 1350
-      tolerancePenalty: 10
-      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100187"
-  - title: "3. \u5269\u4F59\u516B\u6761\u4EC5\u5B58\u4E8E\u5BA3\u4F20\u56FE"
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100256"
+  - title: "1. \u4E1C\u5FB7\u9886\u5BFC\u4EBA"
     choices:
-    - wordId: 100188
-      displayText: "\u5269\u4F59\u516B\u6761\u4EC5\u5B58\u4E8E\u5BA3\u4F20\u56FE"
-      tolerancePenalty: 0
+    - wordId: 100257
+      displayText: "\u4E1C\u5FB7\u9886\u5BFC\u4EBA"
+      tolerancePenalty: 10
       note: "\u6807\u51C6\u9009\u8BCD"
-    - wordId: 361
-      displayText: 1351
+    - wordId: 413
+      displayText: "\u4E00\u4E2A\u8001\u5934"
       tolerancePenalty: 10
-      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100188"
-    - wordId: 362
-      displayText: 1352
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100257"
+    - wordId: 414
+      displayText: "\u773C\u955C\u7537\u4EBA"
       tolerancePenalty: 10
-      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100188"
-    - wordId: 363
-      displayText: 1353
-      tolerancePenalty: 10
-      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100188"
-  - title: "4. \u5E02\u6C11\u65E5\u5E38\u51FA\u884C\u627E\u7EBF\u8DEF"
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100257"
+  - title: "1. \u53CC\u65B9"
     choices:
-    - wordId: 100189
-      displayText: "\u5E02\u6C11\u65E5\u5E38\u51FA\u884C\u627E\u7EBF\u8DEF"
-      tolerancePenalty: 0
+    - wordId: 100258
+      displayText: "\u53CC\u65B9"
+      tolerancePenalty: 10
       note: "\u6807\u51C6\u9009\u8BCD"
-    - wordId: 364
-      displayText: 1354
+    - wordId: 415
+      displayText: "\u5355\u65B9\u9762"
       tolerancePenalty: 10
-      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100189"
-    - wordId: 365
-      displayText: 1355
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100258"
+    - wordId: 416
+      displayText: "\u4E00\u7FA4\u4EBA"
       tolerancePenalty: 10
-      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100189"
-    - wordId: 366
-      displayText: 1356
-      tolerancePenalty: 10
-      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100189"
-  - title: "5. \u5168\u9760\u8111\u8865\u4E0E\u8FD0\u6C14"
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100258"
+  - title: "1. \u8868\u73B0\u51FA\u4E86"
     choices:
-    - wordId: 100190
-      displayText: "\u5168\u9760\u8111\u8865\u4E0E\u8FD0\u6C14"
-      tolerancePenalty: 0
+    - wordId: 100259
+      displayText: "\u8868\u73B0\u51FA\u4E86"
+      tolerancePenalty: 10
       note: "\u6807\u51C6\u9009\u8BCD"
-    - wordId: 367
-      displayText: 1357
+    - wordId: 417
+      displayText: "\u62D2\u7EDD\u8868\u73B0"
       tolerancePenalty: 10
-      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100190"
-    - wordId: 368
-      displayText: 1358
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100259"
+    - wordId: 418
+      displayText: "\u6FC0\u70C8\u53CD\u6297"
       tolerancePenalty: 10
-      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100190"
-    - wordId: 369
-      displayText: 1359
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100259"
+  - title: "1. \u6781\u9AD8\u7684"
+    choices:
+    - wordId: 100260
+      displayText: "\u6781\u9AD8\u7684"
       tolerancePenalty: 10
-      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100190"
+      note: "\u6807\u51C6\u9009\u8BCD"
+    - wordId: 419
+      displayText: "\u6DE1\u7136\u7684"
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100260"
+    - wordId: 420
+      displayText: "\u6781\u9650\u7684"
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100260"
+  - title: "1. \u653F\u6CBB\u53CB\u8C0A"
+    choices:
+    - wordId: 100261
+      displayText: "\u653F\u6CBB\u53CB\u8C0A"
+      tolerancePenalty: 10
+      note: "\u6807\u51C6\u9009\u8BCD"
+    - wordId: 421
+      displayText: "\u57FA\u60C5\u78B0\u649E"
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100261"
+    - wordId: 422
+      displayText: "\u7231\u610F\u7EF5\u7EF5"
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100261"
