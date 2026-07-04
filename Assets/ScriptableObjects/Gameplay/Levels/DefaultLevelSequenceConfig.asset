@@ -12,10 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf5fa0685cb9948b7aaeca9968de96fe, type: 3}
   m_Name: DefaultLevelSequenceConfig
   m_EditorClassIdentifier: Ciga2026.Framework::Ciga2026.Game.Gameplay.LevelSequenceConfig
-  levels:
-  - {fileID: 11400000, guid: 05d747925518b4142a16e441d9aaa292, type: 2}
-  - {fileID: 11400000, guid: 7a678c9039453413ab18a9d0da032e43, type: 2}
-  - {fileID: 11400000, guid: 1f960e96d7aad4e048b9c9b6b54ceef3, type: 2}
-  - {fileID: 11400000, guid: 44f7ce2736cb74f58acec6893a8607bf, type: 2}
-  - {fileID: 11400000, guid: b93c72057c8984ba4b7606d64d16508f, type: 2}
-  - {fileID: 11400000, guid: 8b83b3c22b60c4d418ef9ca3ad139feb, type: 2}
+  days:
+  - {fileID: 11400000, guid: fa993091afed04bac862c323fd2ca959, type: 2}
+  - {fileID: 11400000, guid: 931e1d516f65249f59df264f6cf6d98f, type: 2}
+  - {fileID: 11400000, guid: 186c38040efdf4bffb01aef26130bf45, type: 2}
+  - {fileID: 11400000, guid: 400cb201fb2d04fc5b4065221e01d065, type: 2}
+  - {fileID: 11400000, guid: 9ea39086efe55433d805578396c55a86, type: 2}

@@ -14,24 +14,53 @@ MonoBehaviour:
   m_EditorClassIdentifier: Ciga2026.Framework::Ciga2026.Game.Gameplay.InformationDefinition
   id: DemoInformation_006
   informationText: "\u4FE1\u606F\u63D0\u4F9B\u8005\uFF1A\u5973\u738B\u8981\u6C42\u5B89\u629A\u5C45\u6C11\uFF0C\u5E76\u51C6\u5907\u660E\u5929\u7684\u7269\u8D44\u3002\u64AD\u62A5\u65F6\u6CE8\u610F\u5148\u8BF4\u547D\u4EE4\u6765\u6E90\u3002"
-  availableWordIds:
-  - queen
-  - requests
-  - calm
-  - citizens
-  - prepare
-  - tomorrow
-  - supplies
-  answerCombinations:
-  - wordIds: []
-    wordIdPattern: queen/requests/calm/citizens/prepare/tomorrow/supplies
-    grade: 0
-    note: "\u5B8C\u6574\u4FDD\u7559\u547D\u4EE4\u6765\u6E90\u3001\u5B89\u629A\u5BF9\u8C61\u548C\u7269\u8D44\u51C6\u5907\u3002"
-  - wordIds: []
-    wordIdPattern: queen/requests/prepare/supplies
-    grade: 1
-    note: "\u4FDD\u7559\u547D\u4EE4\u6765\u6E90\u548C\u7269\u8D44\u51C6\u5907\u3002"
-  - wordIds: []
-    wordIdPattern: calm/citizens
-    grade: 2
-    note: "\u53EA\u4FDD\u7559\u5B89\u629A\u5C45\u6C11\u3002"
+  relatedWordCount: 3
+  choiceSets:
+  - title: source
+    choices:
+    - wordId: queen
+      tolerancePenalty: 0
+      note: ""
+    - wordId: tomorrow
+      tolerancePenalty: 10
+      note: ""
+  - title: command
+    choices:
+    - wordId: requests
+      tolerancePenalty: 0
+      note: ""
+    - wordId: supplies
+      tolerancePenalty: 20
+      note: ""
+  - title: mood
+    choices:
+    - wordId: calm
+      tolerancePenalty: 0
+      note: ""
+    - wordId: prepare
+      tolerancePenalty: 10
+      note: ""
+  - title: target
+    choices:
+    - wordId: citizens
+      tolerancePenalty: 0
+      note: ""
+    - wordId: tomorrow
+      tolerancePenalty: 20
+      note: ""
+  - title: action
+    choices:
+    - wordId: prepare
+      tolerancePenalty: 0
+      note: ""
+    - wordId: calm
+      tolerancePenalty: 10
+      note: ""
+  - title: object
+    choices:
+    - wordId: supplies
+      tolerancePenalty: 0
+      note: ""
+    - wordId: queen
+      tolerancePenalty: 20
+      note: ""

@@ -1,4 +1,6 @@
 using Ciga2026.Framework.UI;
+using Ciga2026.Game.Audio;
+using Ciga2026.Game.Gameplay;
 using UnityEngine;
 
 namespace Ciga2026.Game.UI
@@ -14,6 +16,10 @@ namespace Ciga2026.Game.UI
         [Tooltip("StartMeau 的组件绑定。为空时会从当前对象自动获取。")]
         private StartMeauBind bind;
 
+        [SerializeField]
+        [Tooltip("玩法会话配置，用于读取主菜单 BGM 和 UI 点击音效。")]
+        private GameplaySessionConfig sessionConfig;
+
         private void Awake()
         {
             if (bind == null)
@@ -28,6 +34,8 @@ namespace Ciga2026.Game.UI
             {
                 return;
             }
+
+            GameAudioPlayer.PlayMainMenuBgm(sessionConfig);
 
             if (bind.startButton != null)
             {
@@ -60,6 +68,8 @@ namespace Ciga2026.Game.UI
 
         private void OnStartClicked()
         {
+            GameAudioPlayer.PlayUiClick(sessionConfig);
+
             if (GameStateManager.TryGetInstance(out var gameStateManager))
             {
                 gameStateManager.EnterGame();
@@ -74,6 +84,8 @@ namespace Ciga2026.Game.UI
 
         private void OnExitClicked()
         {
+            GameAudioPlayer.PlayUiClick(sessionConfig);
+
             if (GameStateManager.TryGetInstance(out var gameStateManager))
             {
                 gameStateManager.ExitGame();

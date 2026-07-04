@@ -14,23 +14,45 @@ MonoBehaviour:
   m_EditorClassIdentifier: Ciga2026.Framework::Ciga2026.Game.Gameplay.InformationDefinition
   id: DemoInformation_005
   informationText: "\u4FE1\u606F\u63D0\u4F9B\u8005\uFF1A\u9ECE\u660E\u524D\uFF0C\u897F\u4FA7\u5C45\u6C11\u9700\u8981\u4ECE\u6CB3\u8FB9\u64A4\u79BB\u3002\u8BF7\u6392\u5217\u6210\u53EF\u64AD\u62A5\u7684\u547D\u4EE4\u3002"
-  availableWordIds:
-  - dawn
-  - west
-  - citizens
-  - river
-  - evacuate
-  - prepare
-  answerCombinations:
-  - wordIds: []
-    wordIdPattern: dawn/west/citizens/river/evacuate
-    grade: 0
-    note: "\u5B8C\u6574\u5305\u542B\u65F6\u95F4\u3001\u65B9\u4F4D\u3001\u4EBA\u7FA4\u3001\u5730\u70B9\u548C\u884C\u52A8\u3002"
-  - wordIds: []
-    wordIdPattern: west/citizens/evacuate
-    grade: 1
-    note: "\u8BF4\u660E\u65B9\u4F4D\u3001\u4EBA\u7FA4\u548C\u884C\u52A8\u3002"
-  - wordIds: []
-    wordIdPattern: citizens/evacuate
-    grade: 2
-    note: "\u53EA\u4FDD\u7559\u4EBA\u7FA4\u548C\u884C\u52A8\u3002"
+  relatedWordCount: 3
+  choiceSets:
+  - title: time
+    choices:
+    - wordId: dawn
+      tolerancePenalty: 0
+      note: ""
+    - wordId: prepare
+      tolerancePenalty: 10
+      note: ""
+  - title: direction
+    choices:
+    - wordId: west
+      tolerancePenalty: 0
+      note: ""
+    - wordId: river
+      tolerancePenalty: 20
+      note: ""
+  - title: target
+    choices:
+    - wordId: citizens
+      tolerancePenalty: 0
+      note: ""
+    - wordId: prepare
+      tolerancePenalty: 10
+      note: ""
+  - title: place
+    choices:
+    - wordId: river
+      tolerancePenalty: 0
+      note: ""
+    - wordId: west
+      tolerancePenalty: 20
+      note: ""
+  - title: action
+    choices:
+    - wordId: evacuate
+      tolerancePenalty: 0
+      note: ""
+    - wordId: dawn
+      tolerancePenalty: 20
+      note: ""

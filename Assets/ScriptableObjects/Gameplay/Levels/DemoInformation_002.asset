@@ -14,23 +14,45 @@ MonoBehaviour:
   m_EditorClassIdentifier: Ciga2026.Framework::Ciga2026.Game.Gameplay.InformationDefinition
   id: demo_002
   informationText: "\u4FE1\u606F\u63D0\u4F9B\u8005\uFF1A\u6751\u5E84\u660E\u5929\u4F1A\u53D7\u5230\u5F71\u54CD\uFF0C\u64AD\u62A5\u65F6\u9700\u8981\u63D0\u9192\u5C45\u6C11\u51C6\u5907\u7269\u8D44\u5E76\u4FDD\u6301\u5B89\u5B9A\u3002"
-  availableWordIds:
-  - tomorrow
-  - village
-  - citizens
-  - prepare
-  - supplies
-  - calm
-  answerCombinations:
-  - wordIds: []
-    wordIdPattern: tomorrow/village/citizens/prepare/supplies
-    grade: 0
-    note: "\u5B8C\u6574\u4FDD\u7559\u65F6\u95F4\u3001\u5730\u70B9\u3001\u4EBA\u7FA4\u548C\u51C6\u5907\u5185\u5BB9\u3002"
-  - wordIds: []
-    wordIdPattern: village/citizens/prepare
-    grade: 1
-    note: "\u4FDD\u7559\u5730\u70B9\u3001\u4EBA\u7FA4\u548C\u884C\u52A8\u3002"
-  - wordIds: []
-    wordIdPattern: prepare/supplies
-    grade: 2
-    note: "\u53EA\u4FDD\u7559\u51C6\u5907\u7269\u8D44\u3002"
+  relatedWordCount: 3
+  choiceSets:
+  - title: time
+    choices:
+    - wordId: tomorrow
+      tolerancePenalty: 0
+      note: ""
+    - wordId: calm
+      tolerancePenalty: 10
+      note: ""
+  - title: place
+    choices:
+    - wordId: village
+      tolerancePenalty: 0
+      note: ""
+    - wordId: supplies
+      tolerancePenalty: 20
+      note: ""
+  - title: target
+    choices:
+    - wordId: citizens
+      tolerancePenalty: 0
+      note: ""
+    - wordId: calm
+      tolerancePenalty: 10
+      note: ""
+  - title: action
+    choices:
+    - wordId: prepare
+      tolerancePenalty: 0
+      note: ""
+    - wordId: tomorrow
+      tolerancePenalty: 20
+      note: ""
+  - title: object
+    choices:
+    - wordId: supplies
+      tolerancePenalty: 0
+      note: ""
+    - wordId: village
+      tolerancePenalty: 20
+      note: ""

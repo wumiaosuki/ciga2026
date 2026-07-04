@@ -10,13 +10,14 @@ namespace Ciga2026.Game.Gameplay
     public sealed class BroadcastGameplaySession
     {
         private const int DefaultInitialTolerance = 100;
-        private const int DefaultUnmatchedPenalty = 30;
-        private const int DefaultGradeARecovery = 5;
+        private const int DefaultGradeARecovery = 20;
+        private const int DefaultGradeBRecovery = 10;
         private const int DefaultConsecutiveAGradeThreshold = 2;
         private const int DefaultConsecutiveAGradeRecoveryBonus = 10;
 
         private readonly GameplaySessionConfig sessionConfig;
         private int consecutiveAGradeCount;
+        private int currentRoundPenalty;
 
         /// <summary>
         /// 使用配置创建玩法会话。
@@ -51,14 +52,50 @@ namespace Ciga2026.Game.Gameplay
         {
             CurrentTolerance = InitialTolerance;
             consecutiveAGradeCount = 0;
+            currentRoundPenalty = 0;
         }
 
         /// <summary>
-        /// 提交一组有序词语 ID，并根据命中的评分档扣除全局容忍度。
+        /// 开始新的一关，清空本关累计扣分。
+        /// </summary>
+        public void BeginRound()
+        {
+            currentRoundPenalty = 0;
+        }
+
+        /// <summary>
+        /// 选择词语时立即应用扣分。
+        /// </summary>
+        /// <param name="penalty">该词语对应的扣分。</param>
+        public void ApplyWordSelectionPenalty(int penalty)
+        {
+            var clampedPenalty = Mathf.Max(0, penalty);
+            currentRoundPenalty += clampedPenalty;
+            ApplyTolerancePenalty(clampedPenalty);
+        }
+
+        /// <summary>
+        /// 选词倒计时清零时立即应用扣分。
+        /// </summary>
+        /// <param name="penalty">超时对应的扣分。</param>
+        public void ApplySelectionTimeoutPenalty(int penalty)
+        {
+            var clampedPenalty = Mathf.Max(0, penalty);
+            currentRoundPenalty += clampedPenalty;
+            ApplyTolerancePenalty(clampedPenalty);
+        }
+
+        /// <summary>
+        /// 本关当前累计扣分。
+        /// </summary>
+        public int CurrentRoundPenalty => currentRoundPenalty;
+
+        /// <summary>
+        /// 提交一组有序词语 ID，并根据本关累计扣分给出评分。提交本身不再扣分。
         /// </summary>
         /// <param name="information">当前 NPC 信息定义。</param>
         /// <param name="submittedWordIds">玩家按顺序提交的词语 ID。</param>
-        /// <returns>评估结果，包含评分、扣分和是否游戏结束。</returns>
+        /// <returns>评估结果，包含评分、累计扣分、回复和是否游戏结束。</returns>
         public SentenceEvaluationResult SubmitAnswer(InformationDefinition information, IReadOnlyList<string> submittedWordIds)
         {
             if (information == null)
@@ -66,53 +103,20 @@ namespace Ciga2026.Game.Gameplay
                 throw new ArgumentNullException(nameof(information));
             }
 
-            var matchedCombination = FindMatchedCombination(information, submittedWordIds);
-            var isMatched = matchedCombination != null;
-            var grade = isMatched ? matchedCombination.Grade : (AnswerGrade?)null;
-            var penalty = isMatched ? GetPenalty(matchedCombination.Grade) : GetUnmatchedPenalty();
-
-            ApplyTolerancePenalty(penalty);
+            var grade = sessionConfig != null
+                ? sessionConfig.GetGradeByTotalPenalty(currentRoundPenalty)
+                : GetDefaultGradeByTotalPenalty(currentRoundPenalty);
             var recovery = ApplyToleranceRecovery(grade);
 
             return new SentenceEvaluationResult(
-                isMatched,
+                true,
                 grade,
-                penalty,
+                currentRoundPenalty,
                 recovery,
                 consecutiveAGradeCount,
                 CurrentTolerance,
                 IsGameOver,
-                matchedCombination);
-        }
-
-        private static AnswerCombination FindMatchedCombination(InformationDefinition information, IReadOnlyList<string> submittedWordIds)
-        {
-            var combinations = information.AnswerCombinations;
-
-            for (var i = 0; i < combinations.Count; i++)
-            {
-                var combination = combinations[i];
-                if (combination != null && combination.Matches(submittedWordIds))
-                {
-                    return combination;
-                }
-            }
-
-            return null;
-        }
-
-        private int GetPenalty(AnswerGrade grade)
-        {
-            return sessionConfig != null && sessionConfig.GradePenaltyConfig != null
-                ? sessionConfig.GradePenaltyConfig.GetPenalty(grade)
-                : GetDefaultPenalty(grade);
-        }
-
-        private int GetUnmatchedPenalty()
-        {
-            return sessionConfig != null && sessionConfig.GradePenaltyConfig != null
-                ? sessionConfig.GradePenaltyConfig.GetUnmatchedPenalty()
-                : DefaultUnmatchedPenalty;
+                null);
         }
 
         private int GetGradeARecovery()
@@ -120,6 +124,39 @@ namespace Ciga2026.Game.Gameplay
             return sessionConfig != null
                 ? Mathf.Max(0, sessionConfig.GradeARecovery)
                 : DefaultGradeARecovery;
+        }
+
+        private static AnswerGrade GetDefaultGradeByTotalPenalty(int totalPenalty)
+        {
+            var penalty = Mathf.Max(0, totalPenalty);
+            if (penalty <= 0)
+            {
+                return AnswerGrade.A;
+            }
+
+            if (penalty <= 10)
+            {
+                return AnswerGrade.B;
+            }
+
+            if (penalty <= 30)
+            {
+                return AnswerGrade.C;
+            }
+
+            if (penalty <= 50)
+            {
+                return AnswerGrade.D;
+            }
+
+            return AnswerGrade.E;
+        }
+
+        private int GetGradeBRecovery()
+        {
+            return sessionConfig != null
+                ? Mathf.Max(0, sessionConfig.GradeBRecovery)
+                : DefaultGradeBRecovery;
         }
 
         private int GetConsecutiveAGradeThreshold()
@@ -136,37 +173,27 @@ namespace Ciga2026.Game.Gameplay
                 : DefaultConsecutiveAGradeRecoveryBonus;
         }
 
-        private static int GetDefaultPenalty(AnswerGrade grade)
-        {
-            return grade switch
-            {
-                AnswerGrade.A => 0,
-                AnswerGrade.B => 10,
-                AnswerGrade.C => 20,
-                _ => DefaultUnmatchedPenalty
-            };
-        }
-
         private void ApplyTolerancePenalty(int penalty)
         {
             CurrentTolerance = Mathf.Max(0, CurrentTolerance - Mathf.Max(0, penalty));
         }
 
-        private int ApplyToleranceRecovery(AnswerGrade? grade)
+        private int ApplyToleranceRecovery(AnswerGrade grade)
         {
-            if (grade != AnswerGrade.A || IsGameOver)
+            if (IsGameOver)
             {
                 consecutiveAGradeCount = 0;
                 return 0;
             }
 
-            consecutiveAGradeCount++;
-
-            var recovery = GetGradeARecovery();
-            if (consecutiveAGradeCount >= GetConsecutiveAGradeThreshold())
+            var recovery = grade switch
             {
-                recovery += GetConsecutiveAGradeRecoveryBonus();
-            }
+                AnswerGrade.A => GetGradeARecovery(),
+                AnswerGrade.B => GetGradeBRecovery(),
+                _ => 0
+            };
+
+            consecutiveAGradeCount = grade == AnswerGrade.A ? consecutiveAGradeCount + 1 : 0;
 
             CurrentTolerance = Mathf.Min(InitialTolerance, CurrentTolerance + recovery);
             return recovery;

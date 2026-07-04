@@ -1,0 +1,30 @@
+TipsJuese.png
+	size: 2048, 1024
+	filter: Linear, Linear
+	pma: true
+	flat: true
+	scale: 0.6
+1
+	bounds: 427, 385, 509, 581
+	offsets: 89, 143, 673, 841
+2
+	bounds: 938, 627, 541, 339
+	offsets: 60, 255, 673, 841
+3
+	bounds: 2, 2, 377, 445
+	offsets: 160, 236, 673, 841
+	rotate: 90
+31
+	bounds: 1481, 530, 436, 512
+	offsets: 181, 140, 752, 752
+	rotate: 90
+32
+	bounds: 938, 189, 436, 512
+	offsets: 181, 140, 752, 752
+	rotate: 90
+4
+	bounds: 2, 381, 423, 585
+	offsets: 139, 129, 673, 841
+5
+	bounds: 449, 8, 278, 375
+	offsets: 267, 194, 652, 869

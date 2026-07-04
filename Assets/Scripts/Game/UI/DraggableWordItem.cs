@@ -6,28 +6,69 @@ using UnityEngine.UI;
 namespace Ciga2026.Game.UI
 {
     /// <summary>
-    /// 可拖拽的词语 UI 项。
+    /// 可点击移动的词语 UI 项。
     /// </summary>
     [RequireComponent(typeof(RectTransform))]
-    [RequireComponent(typeof(CanvasGroup))]
-    public sealed class DraggableWordItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler
+    public sealed class DraggableWordItem : MonoBehaviour, IPointerClickHandler
     {
         [Header("显示")]
         [Tooltip("词语显示文本。")]
         [SerializeField]
         private TextMeshProUGUI label;
 
-        [Tooltip("拖拽时是否临时脱离布局，以便跟随指针移动。")]
+        [Header("自适应尺寸")]
+        [Tooltip("词块左右留白宽度。")]
         [SerializeField]
-        private bool detachToRootCanvasOnDrag = true;
+        [Min(0f)]
+        private float horizontalPadding = 44f;
+
+        [Tooltip("词块上下留白高度。")]
+        [SerializeField]
+        [Min(0f)]
+        private float verticalPadding = 18f;
+
+        [Tooltip("词块最小宽度。")]
+        [SerializeField]
+        [Min(1f)]
+        private float minWidth = 96f;
+
+        [Tooltip("兜底最大宽度。实际宽度还会受“每行最多字符数”和当前容器宽度限制。")]
+        [SerializeField]
+        [Min(1f)]
+        private float maxWidth = 360f;
+
+        [Tooltip("每行最多显示的字符数。超过后在词块内换行。")]
+        [SerializeField]
+        [Min(1)]
+        private int maxCharactersPerLine = 8;
+
+        [Tooltip("词块最小高度。")]
+        [SerializeField]
+        [Min(1f)]
+        private float minHeight = 46f;
+
+        [Header("随机抖动")]
+        [Tooltip("是否启用词块上下左右随机抖动。抖动只作用在子视觉节点，不影响布局根节点。")]
+        [SerializeField]
+        private bool enableJitter = true;
+
+        [Tooltip("随机抖动的最大偏移像素。")]
+        [SerializeField]
+        [Min(0f)]
+        private float jitterAmplitude = 2f;
+
+        [Tooltip("随机抖动变化速度。")]
+        [SerializeField]
+        [Min(0.01f)]
+        private float jitterFrequency = 9f;
 
         private RectTransform rectTransform;
-        private CanvasGroup canvasGroup;
         private LayoutElement layoutElement;
-        private Canvas rootCanvas;
-        private WordDropZone previousZone;
-        private bool wasDroppedThisDrag;
-        private Vector3 dragWorldOffset;
+        private RectTransform[] jitterTargets;
+        private Vector2[] originalJitterPositions;
+        private float jitterSeedX;
+        private float jitterSeedY;
+        private static int nextLayoutSlotId;
 
         /// <summary>
         /// 当前词语的全局 ID。
@@ -40,21 +81,36 @@ namespace Ciga2026.Game.UI
         public WordDropZone CurrentZone { get; private set; }
 
         /// <summary>
-        /// 当前鼠标悬停的词块。
+        /// 词块在随机布局中的固定槽位 ID。离开词库再回来时仍使用同一个槽位。
         /// </summary>
-        public static DraggableWordItem HoveredItem { get; private set; }
+        public int LayoutSlotId { get; private set; } = -1;
+
+        /// <summary>
+        /// 玩家点击词块时触发。
+        /// </summary>
+        public event System.Action<DraggableWordItem> Clicked;
 
         private void Awake()
         {
             EnsureCached();
+            CacheJitterTargets();
+        }
+
+        private void OnEnable()
+        {
+            jitterSeedX = Mathf.Abs(GetInstanceID() * 0.173f) + 17.31f;
+            jitterSeedY = Mathf.Abs(GetInstanceID() * 0.379f) + 41.73f;
+            CacheJitterTargets();
         }
 
         private void OnDisable()
         {
-            if (HoveredItem == this)
-            {
-                HoveredItem = null;
-            }
+            ResetJitterTargets();
+        }
+
+        private void LateUpdate()
+        {
+            UpdateJitter();
         }
 
         /// <summary>
@@ -67,11 +123,14 @@ namespace Ciga2026.Game.UI
         {
             EnsureCached();
             WordId = wordId;
+            LayoutSlotId = nextLayoutSlotId++;
 
             if (label != null)
             {
                 label.text = displayText;
             }
+
+            RefreshLayoutSize();
 
             if (initialZone != null)
             {
@@ -93,7 +152,6 @@ namespace Ciga2026.Game.UI
             }
 
             CurrentZone = zone;
-            wasDroppedThisDrag = true;
             transform.SetParent(zone.ContentRoot, false);
             transform.SetAsLastSibling();
             rectTransform.anchoredPosition = Vector2.zero;
@@ -102,6 +160,8 @@ namespace Ciga2026.Game.UI
             {
                 layoutElement.ignoreLayout = false;
             }
+
+            RefreshLayoutSize();
         }
 
         /// <summary>
@@ -120,140 +180,158 @@ namespace Ciga2026.Game.UI
         }
 
         /// <inheritdoc />
-        public void OnBeginDrag(PointerEventData eventData)
+        public void OnPointerClick(PointerEventData eventData)
         {
-            EnsureCached();
-            previousZone = CurrentZone;
-            wasDroppedThisDrag = false;
-            rootCanvas = rootCanvas != null ? rootCanvas : GetComponentInParent<Canvas>()?.rootCanvas;
-
-            if (layoutElement != null)
+            if (eventData.button != PointerEventData.InputButton.Left)
             {
-                layoutElement.ignoreLayout = true;
-            }
-
-            if (detachToRootCanvasOnDrag && rootCanvas != null)
-            {
-                transform.SetParent(rootCanvas.transform, true);
-            }
-
-            dragWorldOffset = GetDragWorldOffset(eventData);
-            canvasGroup.blocksRaycasts = false;
-            canvasGroup.alpha = 0.85f;
-            UpdateDragPosition(eventData);
-        }
-
-        /// <inheritdoc />
-        public void OnDrag(PointerEventData eventData)
-        {
-            EnsureCached();
-            UpdateDragPosition(eventData);
-        }
-
-        /// <inheritdoc />
-        public void OnEndDrag(PointerEventData eventData)
-        {
-            EnsureCached();
-            canvasGroup.blocksRaycasts = true;
-            canvasGroup.alpha = 1f;
-
-            if (!wasDroppedThisDrag && previousZone != null)
-            {
-                AttachToZone(previousZone);
-            }
-        }
-
-        /// <inheritdoc />
-        public void OnPointerEnter(PointerEventData eventData)
-        {
-            HoveredItem = this;
-        }
-
-        /// <inheritdoc />
-        public void OnPointerExit(PointerEventData eventData)
-        {
-            if (HoveredItem == this)
-            {
-                HoveredItem = null;
-            }
-        }
-
-        private void UpdateDragPosition(PointerEventData eventData)
-        {
-            EnsureCached();
-
-            if (rootCanvas == null)
-            {
-                rectTransform.position = (Vector3)eventData.position + dragWorldOffset;
                 return;
             }
 
-            var rootRect = (RectTransform)rootCanvas.transform;
-            var eventCamera = GetEventCamera(eventData);
-            if (RectTransformUtility.ScreenPointToWorldPointInRectangle(rootRect, eventData.position, eventCamera, out var worldPoint))
-            {
-                rectTransform.position = ClampWorldPositionToRoot(worldPoint + dragWorldOffset, rootRect);
-            }
+            Clicked?.Invoke(this);
         }
 
-        private Vector3 ClampWorldPositionToRoot(Vector3 worldPosition, RectTransform rootRect)
+        /// <summary>
+        /// 根据当前文本刷新词块参与布局的首选尺寸。
+        /// </summary>
+        public void RefreshLayoutSize()
         {
-            var localPosition = rootRect.InverseTransformPoint(worldPosition);
-            var rect = rootRect.rect;
-            var itemSize = Vector2.Scale(rectTransform.rect.size, rectTransform.lossyScale);
-            var rootScale = rootRect.lossyScale;
-
-            if (!Mathf.Approximately(rootScale.x, 0f))
-            {
-                itemSize.x /= Mathf.Abs(rootScale.x);
-            }
-
-            if (!Mathf.Approximately(rootScale.y, 0f))
-            {
-                itemSize.y /= Mathf.Abs(rootScale.y);
-            }
-
-            var pivotOffset = new Vector2(
-                Mathf.Lerp(itemSize.x, -itemSize.x, rectTransform.pivot.x) * 0.5f,
-                Mathf.Lerp(itemSize.y, -itemSize.y, rectTransform.pivot.y) * 0.5f);
-            var halfSize = itemSize * 0.5f;
-
-            localPosition.x = Mathf.Clamp(localPosition.x, rect.xMin + halfSize.x + pivotOffset.x, rect.xMax - halfSize.x + pivotOffset.x);
-            localPosition.y = Mathf.Clamp(localPosition.y, rect.yMin + halfSize.y + pivotOffset.y, rect.yMax - halfSize.y + pivotOffset.y);
-
-            return rootRect.TransformPoint(localPosition);
+            RefreshLayoutSize(maxWidth);
         }
 
-        private Vector3 GetDragWorldOffset(PointerEventData eventData)
+        /// <summary>
+        /// 根据当前文本和外部布局区域宽度刷新词块首选尺寸。
+        /// </summary>
+        /// <param name="maxAllowedWidth">当前布局区域允许的最大词块宽度。</param>
+        public void RefreshLayoutSize(float maxAllowedWidth)
         {
-            if (rootCanvas == null)
+            EnsureCached();
+
+            var effectiveMaxWidth = Mathf.Max(minWidth, Mathf.Min(maxWidth, GetCharacterLimitedWidth(), Mathf.Max(1f, maxAllowedWidth)));
+            var preferredTextSize = label != null
+                ? label.GetPreferredValues(label.text, Mathf.Infinity, Mathf.Infinity)
+                : Vector2.zero;
+            var preferredWidth = Mathf.Clamp(preferredTextSize.x + horizontalPadding, minWidth, effectiveMaxWidth);
+            var textWidthLimit = Mathf.Max(1f, preferredWidth - horizontalPadding);
+
+            if (label != null)
             {
-                return rectTransform.position - (Vector3)eventData.position;
+                label.textWrappingMode = preferredTextSize.x + horizontalPadding > effectiveMaxWidth
+                    ? TextWrappingModes.Normal
+                    : TextWrappingModes.NoWrap;
+                preferredTextSize = label.GetPreferredValues(label.text, textWidthLimit, Mathf.Infinity);
             }
 
-            var rootRect = (RectTransform)rootCanvas.transform;
-            var eventCamera = GetEventCamera(eventData);
-            return RectTransformUtility.ScreenPointToWorldPointInRectangle(rootRect, eventData.position, eventCamera, out var worldPoint)
-                ? rectTransform.position - worldPoint
-                : Vector3.zero;
+            var preferredHeight = Mathf.Max(minHeight, preferredTextSize.y + verticalPadding);
+
+            if (layoutElement != null)
+            {
+                layoutElement.minWidth = minWidth;
+                layoutElement.preferredWidth = preferredWidth;
+                layoutElement.minHeight = minHeight;
+                layoutElement.preferredHeight = preferredHeight;
+                layoutElement.flexibleWidth = 0f;
+                layoutElement.flexibleHeight = 0f;
+            }
+
+            rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, preferredWidth);
+            rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, preferredHeight);
         }
 
-        private Camera GetEventCamera(PointerEventData eventData)
+        private float GetCharacterLimitedWidth()
         {
-            if (rootCanvas == null || rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay)
+            if (label == null || string.IsNullOrEmpty(label.text))
             {
-                return null;
+                return maxWidth;
             }
 
-            return rootCanvas.worldCamera != null ? rootCanvas.worldCamera : eventData.pressEventCamera;
+            var lineText = GetLeadingCharacters(label.text, Mathf.Max(1, maxCharactersPerLine));
+            var lineSize = label.GetPreferredValues(lineText, Mathf.Infinity, Mathf.Infinity);
+            return Mathf.Max(minWidth, lineSize.x + horizontalPadding);
+        }
+
+        private static string GetLeadingCharacters(string text, int maxCharacters)
+        {
+            if (string.IsNullOrEmpty(text) || maxCharacters <= 0 || text.Length <= maxCharacters)
+            {
+                return text;
+            }
+
+            return text.Substring(0, maxCharacters);
         }
 
         private void EnsureCached()
         {
             rectTransform = rectTransform != null ? rectTransform : GetComponent<RectTransform>();
-            canvasGroup = canvasGroup != null ? canvasGroup : GetComponent<CanvasGroup>();
             layoutElement = layoutElement != null ? layoutElement : GetComponent<LayoutElement>();
-            rootCanvas = rootCanvas != null ? rootCanvas : GetComponentInParent<Canvas>()?.rootCanvas;
+        }
+
+        private void CacheJitterTargets()
+        {
+            if (jitterTargets != null && jitterTargets.Length == transform.childCount)
+            {
+                return;
+            }
+
+            jitterTargets = new RectTransform[transform.childCount];
+            originalJitterPositions = new Vector2[transform.childCount];
+
+            for (var i = 0; i < transform.childCount; i++)
+            {
+                var child = transform.GetChild(i) as RectTransform;
+                jitterTargets[i] = child;
+                originalJitterPositions[i] = child != null ? child.anchoredPosition : Vector2.zero;
+            }
+        }
+
+        private void UpdateJitter()
+        {
+            if (!ShouldPlayJitter())
+            {
+                ResetJitterTargets();
+                return;
+            }
+
+            if (jitterTargets == null)
+            {
+                return;
+            }
+
+            var time = Time.unscaledTime * jitterFrequency;
+            var offset = new Vector2(
+                (Mathf.PerlinNoise(jitterSeedX, time) - 0.5f) * 2f * jitterAmplitude,
+                (Mathf.PerlinNoise(jitterSeedY, time) - 0.5f) * 2f * jitterAmplitude);
+
+            for (var i = 0; i < jitterTargets.Length; i++)
+            {
+                if (jitterTargets[i] != null)
+                {
+                    jitterTargets[i].anchoredPosition = originalJitterPositions[i] + offset;
+                }
+            }
+        }
+
+        private bool ShouldPlayJitter()
+        {
+            return enableJitter
+                && jitterAmplitude > 0f
+                && CurrentZone != null
+                && CurrentZone.AllowWordItemJitter;
+        }
+
+        private void ResetJitterTargets()
+        {
+            if (jitterTargets == null || originalJitterPositions == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < jitterTargets.Length; i++)
+            {
+                if (jitterTargets[i] != null)
+                {
+                    jitterTargets[i].anchoredPosition = originalJitterPositions[i];
+                }
+            }
         }
     }
 }

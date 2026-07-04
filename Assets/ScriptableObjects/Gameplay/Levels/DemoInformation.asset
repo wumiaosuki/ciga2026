@@ -14,23 +14,37 @@ MonoBehaviour:
   m_EditorClassIdentifier: Ciga2026.Framework::Ciga2026.Game.Gameplay.InformationDefinition
   id: demo_001
   informationText: "\u4FE1\u606F\u63D0\u4F9B\u8005\uFF1A\u5973\u738B\u63D0\u5230\uFF0C\u5DE8\u9F99\u5DF2\u7ECF\u62B5\u8FBE\u3002\u8BF7\u628A\u8111\u4E2D\u7684\u8BCD\u8BED\u6392\u5217\u6210\u51C6\u786E\u64AD\u62A5\u3002"
-  availableWordIds:
-  - queen
-  - says
-  - dragon
-  - arrived
-  - tomorrow
-  - village
-  answerCombinations:
-  - wordIds: []
-    wordIdPattern: queen/says/dragon/arrived
-    grade: 0
-    note: "\u5B8C\u6574\u51C6\u786E\u64AD\u62A5"
-  - wordIds: []
-    wordIdPattern: queen/says/dragon
-    grade: 1
-    note: "\u6F0F\u6389\u62B5\u8FBE\u4FE1\u606F"
-  - wordIds: []
-    wordIdPattern: dragon/arrived
-    grade: 2
-    note: "\u53EA\u6293\u5230\u6838\u5FC3\u4E8B\u4EF6"
+  relatedWordCount: 3
+  choiceSets:
+  - title: source
+    choices:
+    - wordId: queen
+      tolerancePenalty: 0
+      note: ""
+    - wordId: village
+      tolerancePenalty: 20
+      note: ""
+  - title: action
+    choices:
+    - wordId: says
+      tolerancePenalty: 0
+      note: ""
+    - wordId: tomorrow
+      tolerancePenalty: 10
+      note: ""
+  - title: subject
+    choices:
+    - wordId: dragon
+      tolerancePenalty: 0
+      note: ""
+    - wordId: village
+      tolerancePenalty: 20
+      note: ""
+  - title: result
+    choices:
+    - wordId: arrived
+      tolerancePenalty: 0
+      note: ""
+    - wordId: tomorrow
+      tolerancePenalty: 10
+      note: ""

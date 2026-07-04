@@ -18,6 +18,16 @@ namespace Ciga2026.Game.Gameplay
         /// <summary>
         /// 较差但仍可接受的答案。
         /// </summary>
-        C = 2
+        C = 2,
+
+        /// <summary>
+        /// 较差答案。
+        /// </summary>
+        D = 3,
+
+        /// <summary>
+        /// 最差答案。
+        /// </summary>
+        E = 4
     }
 }

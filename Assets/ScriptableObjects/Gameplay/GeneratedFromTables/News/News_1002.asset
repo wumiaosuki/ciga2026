@@ -1,0 +1,109 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8748c288ead564ee797a30f8d1a0158f, type: 3}
+  m_Name: News_1002
+  m_EditorClassIdentifier: Ciga2026.Framework::Ciga2026.Game.Gameplay.InformationDefinition
+  id: 1002
+  informationText: "\u5361\u5C14\u5BBE\u77FF\u533A\u6398\u8FDB\u961F\u521B\u6708\u8FDB\u5C3A
+    420 \u7C73\u7EAA\u5F55\uFF0C\u8D85\u4E03\u6210\u8FDB\u5EA6\u5728\u62A5\u8868\u4E0A\uFF0C\u7B14\u5C16\u6398\u8FDB\u6548\u7387\u8FDC\u8D85\u98CE\u9550\u3002"
+  relatedWordCount: 1
+  choiceSets:
+  - title: "1. \u5361\u5C14\u5BBE\u77FF\u533A\u6398\u8FDB\u961F\u521B\u6398\u8FDB\u65B0\u7EAA\u5F55"
+    choices:
+    - wordId: 100106
+      displayText: "\u5361\u5C14\u5BBE\u77FF\u533A\u6398\u8FDB\u961F\u521B\u6398\u8FDB\u65B0\u7EAA\u5F55"
+      tolerancePenalty: 0
+      note: "\u6807\u51C6\u9009\u8BCD"
+    - wordId: 115
+      displayText: 1105
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100106"
+    - wordId: 116
+      displayText: 1106
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100106"
+    - wordId: 117
+      displayText: 1107
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100106"
+  - title: "2. \u6708\u8FDB\u5C3A\u7A81\u7834\u56DB\u767E\u4E8C\u5341\u7C73"
+    choices:
+    - wordId: 100107
+      displayText: "\u6708\u8FDB\u5C3A\u7A81\u7834\u56DB\u767E\u4E8C\u5341\u7C73"
+      tolerancePenalty: 0
+      note: "\u6807\u51C6\u9009\u8BCD"
+    - wordId: 118
+      displayText: 1108
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100107"
+    - wordId: 119
+      displayText: 1109
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100107"
+    - wordId: 120
+      displayText: 1110
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100107"
+  - title: "3. \u8D85\u4E03\u6210\u8FDB\u5EA6\u6765\u81EA\u62A5\u8868"
+    choices:
+    - wordId: 100108
+      displayText: "\u8D85\u4E03\u6210\u8FDB\u5EA6\u6765\u81EA\u62A5\u8868"
+      tolerancePenalty: 0
+      note: "\u6807\u51C6\u9009\u8BCD"
+    - wordId: 121
+      displayText: 1111
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100108"
+    - wordId: 122
+      displayText: 1112
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100108"
+    - wordId: 123
+      displayText: 1113
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100108"
+  - title: "4. \u7B14\u5C16\u6398\u8FDB\u6548\u7387"
+    choices:
+    - wordId: 100109
+      displayText: "\u7B14\u5C16\u6398\u8FDB\u6548\u7387"
+      tolerancePenalty: 0
+      note: "\u6807\u51C6\u9009\u8BCD"
+    - wordId: 124
+      displayText: 1114
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100109"
+    - wordId: 125
+      displayText: 1115
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100109"
+    - wordId: 126
+      displayText: 1116
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100109"
+  - title: "5. \u8FDC\u8D85\u5B9E\u9645\u98CE\u9550\u4F5C\u4E1A"
+    choices:
+    - wordId: 100110
+      displayText: "\u8FDC\u8D85\u5B9E\u9645\u98CE\u9550\u4F5C\u4E1A"
+      tolerancePenalty: 0
+      note: "\u6807\u51C6\u9009\u8BCD"
+    - wordId: 127
+      displayText: 1117
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100110"
+    - wordId: 128
+      displayText: 1118
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100110"
+    - wordId: 129
+      displayText: 1119
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100110"

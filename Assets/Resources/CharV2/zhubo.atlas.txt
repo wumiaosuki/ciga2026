@@ -1,0 +1,21 @@
+zhubo.png
+	size: 2048, 1024
+	filter: Linear, Linear
+	pma: true
+	flat: true
+	scale: 0.6
+1
+	bounds: 1157, 425, 460, 393
+	offsets: 47, 446, 532, 1064
+2
+	bounds: 649, 209, 506, 609
+	offsets: 123, 101, 752, 752
+3
+	bounds: 175, 16, 291, 802
+	offsets: 166, 66, 614, 922
+4
+	bounds: 2, 2, 171, 816
+	offsets: 178, 170, 532, 1064
+5
+	bounds: 468, 51, 179, 767
+	offsets: 170, 202, 532, 1064

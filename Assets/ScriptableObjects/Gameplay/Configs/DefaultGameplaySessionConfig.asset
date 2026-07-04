@@ -13,11 +13,23 @@ MonoBehaviour:
   m_Name: DefaultGameplaySessionConfig
   m_EditorClassIdentifier: Ciga2026.Framework::Ciga2026.Game.Gameplay.GameplaySessionConfig
   initialTolerance: 100
-  gradePenaltyConfig: {fileID: 11400000, guid: 07cf3b5a4ab174d4dbfb61ef24d8fc8b, type: 2}
-  gradeARecovery: 5
+  gradeThresholds:
+  - grade: 0
+    maxTotalPenalty: 0
+  - grade: 1
+    maxTotalPenalty: 10
+  - grade: 2
+    maxTotalPenalty: 30
+  - grade: 3
+    maxTotalPenalty: 50
+  - grade: 4
+    maxTotalPenalty: 70
+  gradeARecovery: 20
+  gradeBRecovery: 10
   consecutiveAGradeThreshold: 2
   consecutiveAGradeRecoveryBonus: 10
   initialLevelDuration: 100
+  selectionTimeoutPenalty: 10
   levelDurationMultiplierCurve:
     serializedVersion: 2
     m_Curve:
@@ -51,3 +63,22 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  mainMenuBgm: {fileID: 8300000, guid: 52a3f4e50bec54027a02e33e7263d793, type: 3}
+  gameBgm: {fileID: 8300000, guid: 1a307d1cd8280427b80d46defde5abb6, type: 3}
+  uiClickSfx: {fileID: 8300000, guid: 55131ce98d7ef40fa92432348e94f6b6, type: 3}
+  warningPenaltyThreshold: 20
+  warningSfx: {fileID: 8300000, guid: d6fd0c97a07454d4eab322d0b0c5570b, type: 3}
+  victorySfx: {fileID: 8300000, guid: 81ac6261f9e7a478b8f1bdc8f5a389c9, type: 3}
+  failureSfx: {fileID: 8300000, guid: 5e02b8f9b83d74ddbb763ba6de3bdf22, type: 3}
+  voiceSfxClips:
+  - {fileID: 8300000, guid: 38dc032516417489b9a5bf3dca4c3d4a, type: 3}
+  - {fileID: 8300000, guid: 4e781d1e1120443719bdcbe527b864a8, type: 3}
+  - {fileID: 8300000, guid: 3a20b8a529dae4de199df658d158b551, type: 3}
+  - {fileID: 8300000, guid: 011250e4667a64072b31111054478743, type: 3}
+  - {fileID: 8300000, guid: 3e9a42f4966a34209944676307d4d972, type: 3}
+  - {fileID: 8300000, guid: 00d5419b255d64654bb01c7b30644c64, type: 3}
+  - {fileID: 8300000, guid: 6cfab01ded5de4ba7a0ba22d3b7cb4cd, type: 3}
+  - {fileID: 8300000, guid: 715bc7625d92d467f8ccd4af91fd9e73, type: 3}
+  - {fileID: 8300000, guid: 12aea342a340740099a87ae61587c112, type: 3}
+  - {fileID: 8300000, guid: b746ebd6b934842aba087ee938f0f6f7, type: 3}
+  - {fileID: 8300000, guid: 9ae3b21e7485144a38ccf7d2fc13321a, type: 3}

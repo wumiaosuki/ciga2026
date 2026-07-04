@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Ciga2026.Game.Gameplay
 {
     /// <summary>
-    /// NPC 提供的一条信息，以及这条信息可接受的多个评分档答案。
+    /// NPC 提供的一条信息，以及本关可抽取的词组选项。
     /// </summary>
     [CreateAssetMenu(fileName = "InformationDefinition", menuName = "Ciga2026/Gameplay/Information Definition")]
     public sealed class InformationDefinition : ScriptableObject
@@ -19,15 +20,16 @@ namespace Ciga2026.Game.Gameplay
         [SerializeField]
         private string informationText;
 
-        [Header("本轮信息可用词语")]
-        [Tooltip("这条信息对应可供玩家排列的词语 ID。词语文本从全局词库读取。")]
+        [Header("本轮词组选项")]
+        [Tooltip("本条信息同屏希望出现的关联词组数量。待选区实际互斥词组上限为该值 + 1；混淆词属于词组内部选项，不占用该上限。")]
+        [Min(1)]
         [SerializeField]
-        private List<string> availableWordIds = new();
+        [FormerlySerializedAs("visibleChoiceSetCount")]
+        private int relatedWordCount = 3;
 
-        [Header("评分档答案")]
-        [Tooltip("同一条信息可配置多个答案组合，每个组合命中不同评分档。")]
+        [Tooltip("按抽取顺序配置的互斥词组。每个词组内可以放正确词和多个混淆词。")]
         [SerializeField]
-        private List<AnswerCombination> answerCombinations = new();
+        private List<WordChoiceSet> choiceSets = new();
 
         /// <summary>
         /// 信息 ID。
@@ -40,13 +42,19 @@ namespace Ciga2026.Game.Gameplay
         public string InformationText => informationText;
 
         /// <summary>
-        /// 本轮信息可供玩家排列的词语 ID。
+        /// 本条信息同屏希望出现的关联词组数量。
         /// </summary>
-        public IReadOnlyList<string> AvailableWordIds => availableWordIds;
+        public int RelatedWordCount => Mathf.Max(1, relatedWordCount);
 
         /// <summary>
-        /// 这条信息可接受的评分档答案组合。
+        /// 待选区实际互斥词组显示上限。
         /// </summary>
-        public IReadOnlyList<AnswerCombination> AnswerCombinations => answerCombinations;
+        public int VisibleChoiceSetLimit => RelatedWordCount + 1;
+
+        /// <summary>
+        /// 本轮按抽取顺序配置的互斥词组。
+        /// </summary>
+        public IReadOnlyList<WordChoiceSet> ChoiceSets => choiceSets;
+
     }
 }

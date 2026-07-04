@@ -1,0 +1,17 @@
+GuoDuAinm.png
+	size: 2048, 512
+	filter: Linear, Linear
+	pma: true
+	flat: true
+	scale: 0.4
+1
+	bounds: 673, 347, 596, 117
+	offsets: 41, 126, 669, 376
+2
+	bounds: 2, 2, 643, 84
+	offsets: 13, 143, 669, 376
+3
+	bounds: 2, 88, 669, 376
+4
+	bounds: 673, 61, 529, 284
+	offsets: 0, 31, 529, 315

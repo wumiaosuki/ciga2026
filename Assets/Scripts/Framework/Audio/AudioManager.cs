@@ -21,6 +21,18 @@ namespace Ciga2026.Framework.Audio
         [Tooltip("用于播放短音效的 AudioSource。未绑定时会在运行时自动创建。")]
         private AudioSource sfxSource;
 
+        [SerializeField]
+        [Tooltip("用于播放 UI 音效的 AudioSource。同频道新音效会打断上一条。")]
+        private AudioSource uiSfxSource;
+
+        [SerializeField]
+        [Tooltip("用于播放说话音效的 AudioSource。同频道新音效会打断上一条。")]
+        private AudioSource voiceSfxSource;
+
+        [SerializeField]
+        [Tooltip("用于播放其它音效的 AudioSource。同频道新音效会打断上一条。")]
+        private AudioSource otherSfxSource;
+
         [Header("音量设置")]
         [SerializeField]
         [Range(0f, 1f)]
@@ -63,6 +75,21 @@ namespace Ciga2026.Framework.Audio
         public AudioSource SfxSource => sfxSource;
 
         /// <summary>
+        /// UI 音效使用的 AudioSource。
+        /// </summary>
+        public AudioSource UiSfxSource => uiSfxSource;
+
+        /// <summary>
+        /// 说话音效使用的 AudioSource。
+        /// </summary>
+        public AudioSource VoiceSfxSource => voiceSfxSource;
+
+        /// <summary>
+        /// 其它音效使用的 AudioSource。
+        /// </summary>
+        public AudioSource OtherSfxSource => otherSfxSource;
+
+        /// <summary>
         /// 当前主音量，范围 0 到 1。
         /// </summary>
         public float MasterVolume => masterVolume;
@@ -83,7 +110,7 @@ namespace Ciga2026.Framework.Audio
         public bool IsBgmPlaying => bgmSource != null && bgmSource.isPlaying;
 
         /// <summary>
-        /// 初始化单例并准备两个 AudioSource。
+        /// 初始化单例并准备 BGM、默认音效和频道音效 AudioSource。
         /// </summary>
         protected override void Awake()
         {
@@ -235,12 +262,50 @@ namespace Ciga2026.Framework.Audio
         }
 
         /// <summary>
+        /// 在指定音效频道播放短音效。同一频道内会打断上一条声音。
+        /// </summary>
+        /// <param name="clip">要播放的音效片段。传入 null 时不会执行播放。</param>
+        /// <param name="channel">播放使用的音效频道。</param>
+        /// <param name="volumeScale">单次播放音量倍率，最终音量会再乘以主音量和音效音量。</param>
+        /// <param name="pitch">播放音高。1 为原始音高，小于 1 变低，大于 1 变高。</param>
+        public void PlaySfx(AudioClip clip, AudioSfxChannel channel, float volumeScale = 1f, float pitch = 1f)
+        {
+            if (clip == null)
+            {
+                return;
+            }
+
+            EnsureAudioSources();
+
+            var source = GetChannelSource(channel);
+            source.Stop();
+            source.clip = clip;
+            source.loop = false;
+            source.pitch = Mathf.Max(0.01f, pitch);
+            source.volume = GetFinalSfxVolume() * Mathf.Max(0f, volumeScale);
+            source.Play();
+        }
+
+        /// <summary>
         /// 停止当前音效 AudioSource 上正在播放的所有声音。
         /// </summary>
         public void StopSfx()
         {
             EnsureAudioSources();
             sfxSource.Stop();
+            uiSfxSource.Stop();
+            voiceSfxSource.Stop();
+            otherSfxSource.Stop();
+        }
+
+        /// <summary>
+        /// 停止指定音效频道当前正在播放的声音。
+        /// </summary>
+        /// <param name="channel">要停止的音效频道。</param>
+        public void StopSfx(AudioSfxChannel channel)
+        {
+            EnsureAudioSources();
+            GetChannelSource(channel).Stop();
         }
 
         /// <summary>
@@ -274,7 +339,7 @@ namespace Ciga2026.Framework.Audio
         }
 
         /// <summary>
-        /// 确保 BGM 和音效各自拥有一个可用的 AudioSource。
+        /// 确保 BGM、默认音效和频道音效各自拥有一个可用的 AudioSource。
         /// </summary>
         private void EnsureAudioSources()
         {
@@ -288,8 +353,26 @@ namespace Ciga2026.Framework.Audio
                 sfxSource = CreateChildAudioSource("SFX Source", false);
             }
 
+            if (uiSfxSource == null)
+            {
+                uiSfxSource = CreateChildAudioSource("UI SFX Source", false);
+            }
+
+            if (voiceSfxSource == null)
+            {
+                voiceSfxSource = CreateChildAudioSource("Voice SFX Source", false);
+            }
+
+            if (otherSfxSource == null)
+            {
+                otherSfxSource = CreateChildAudioSource("Other SFX Source", false);
+            }
+
             bgmSource.playOnAwake = false;
             sfxSource.playOnAwake = false;
+            uiSfxSource.playOnAwake = false;
+            voiceSfxSource.playOnAwake = false;
+            otherSfxSource.playOnAwake = false;
         }
 
         /// <summary>
@@ -312,7 +395,7 @@ namespace Ciga2026.Framework.Audio
         }
 
         /// <summary>
-        /// 将当前音量设置应用到两个 AudioSource。
+        /// 将当前音量设置应用到所有 AudioSource。
         /// </summary>
         private void ApplyVolumes()
         {
@@ -324,6 +407,21 @@ namespace Ciga2026.Framework.Audio
             if (sfxSource != null)
             {
                 sfxSource.volume = GetFinalSfxVolume();
+            }
+
+            if (uiSfxSource != null)
+            {
+                uiSfxSource.volume = GetFinalSfxVolume();
+            }
+
+            if (voiceSfxSource != null)
+            {
+                voiceSfxSource.volume = GetFinalSfxVolume();
+            }
+
+            if (otherSfxSource != null)
+            {
+                otherSfxSource.volume = GetFinalSfxVolume();
             }
         }
 
@@ -341,6 +439,16 @@ namespace Ciga2026.Framework.Audio
         private float GetFinalSfxVolume()
         {
             return masterVolume * sfxVolume;
+        }
+
+        private AudioSource GetChannelSource(AudioSfxChannel channel)
+        {
+            return channel switch
+            {
+                AudioSfxChannel.UI => uiSfxSource,
+                AudioSfxChannel.Voice => voiceSfxSource,
+                _ => otherSfxSource
+            };
         }
 
         /// <summary>

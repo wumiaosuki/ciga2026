@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6707bde8d1714f7eac20ac124c4260c3, type: 3}
+  m_Name: Day_91001
+  m_EditorClassIdentifier: Ciga2026.Framework::Ciga2026.Game.Gameplay.DayDefinition
+  title: "\u5173\u5361 91001"
+  levels:
+  - {fileID: 11400000, guid: 28703565ee17d428aa4ab59d8bccae66, type: 2}
+  - {fileID: 11400000, guid: 7adaf01798f4f47e29618262cf38a41e, type: 2}
+  - {fileID: 11400000, guid: eace4dfc6491c41a38c75c4177c4777b, type: 2}

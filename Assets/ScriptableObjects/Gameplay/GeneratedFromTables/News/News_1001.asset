@@ -1,0 +1,110 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8748c288ead564ee797a30f8d1a0158f, type: 3}
+  m_Name: News_1001
+  m_EditorClassIdentifier: Ciga2026.Framework::Ciga2026.Game.Gameplay.InformationDefinition
+  id: 1001
+  informationText: "&11"
+  relatedWordCount: 1
+  choiceSets:
+  - title: "1. \u51B6\u91D1\u65AF\u514B\u94A2\u94C1\u5382\u4EA7\u91CF\u8FBE\u6807
+      108%"
+    choices:
+    - wordId: 100101
+      displayText: "\u51B6\u91D1\u65AF\u514B\u94A2\u94C1\u5382\u4EA7\u91CF\u8FBE\u6807
+        108%"
+      tolerancePenalty: 0
+      note: "\u6807\u51C6\u9009\u8BCD"
+    - wordId: 100
+      displayText: 1090
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100101"
+    - wordId: 101
+      displayText: 1091
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100101"
+    - wordId: 102
+      displayText: 1092
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100101"
+  - title: "2. \u8D85\u989D\u9760\u9508\u952D\u53CC\u500D\u6298\u7B97\u8BA1\u5165"
+    choices:
+    - wordId: 100102
+      displayText: "\u8D85\u989D\u9760\u9508\u952D\u53CC\u500D\u6298\u7B97\u8BA1\u5165"
+      tolerancePenalty: 0
+      note: "\u6807\u51C6\u9009\u8BCD"
+    - wordId: 103
+      displayText: 1093
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100102"
+    - wordId: 104
+      displayText: 1094
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100102"
+    - wordId: 105
+      displayText: 1095
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100102"
+  - title: "3. \u5382\u515A\u59D4\u4F18\u5316\u7EDF\u8BA1\u65B9\u6CD5"
+    choices:
+    - wordId: 100103
+      displayText: "\u5382\u515A\u59D4\u4F18\u5316\u7EDF\u8BA1\u65B9\u6CD5"
+      tolerancePenalty: 0
+      note: "\u6807\u51C6\u9009\u8BCD"
+    - wordId: 106
+      displayText: 1096
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100103"
+    - wordId: 107
+      displayText: 1097
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100103"
+    - wordId: 108
+      displayText: 1098
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100103"
+  - title: "4. \u4EE5\u4F18\u5F02\u751F\u4EA7\u6210\u7EE9"
+    choices:
+    - wordId: 100104
+      displayText: "\u4EE5\u4F18\u5F02\u751F\u4EA7\u6210\u7EE9"
+      tolerancePenalty: 0
+      note: "\u6807\u51C6\u9009\u8BCD"
+    - wordId: 109
+      displayText: 1099
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100104"
+    - wordId: 110
+      displayText: 1100
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100104"
+    - wordId: 111
+      displayText: 1101
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100104"
+  - title: "5. \u732E\u793C\u4E94\u5E74\u5EFA\u8BBE\u7EB2\u8981"
+    choices:
+    - wordId: 100105
+      displayText: "\u732E\u793C\u4E94\u5E74\u5EFA\u8BBE\u7EB2\u8981"
+      tolerancePenalty: 0
+      note: "\u6807\u51C6\u9009\u8BCD"
+    - wordId: 112
+      displayText: 1102
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100105"
+    - wordId: 113
+      displayText: 1103
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100105"
+    - wordId: 114
+      displayText: 1104
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100105"

@@ -14,23 +14,45 @@ MonoBehaviour:
   m_EditorClassIdentifier: Ciga2026.Framework::Ciga2026.Game.Gameplay.InformationDefinition
   id: DemoInformation_003
   informationText: "\u4FE1\u606F\u63D0\u4F9B\u8005\uFF1A\u4FA6\u5BDF\u5175\u62A5\u544A\uFF0C\u4ECA\u665A\u57CE\u95E8\u9700\u8981\u5C01\u9501\u3002\u8BF7\u628A\u64AD\u62A5\u91CD\u70B9\u7EC4\u7EC7\u6210\u4E00\u53E5\u8BDD\u3002"
-  availableWordIds:
-  - scout
-  - reported
-  - tonight
-  - gate
-  - blocked
-  - fire
-  answerCombinations:
-  - wordIds: []
-    wordIdPattern: scout/reported/tonight/gate/blocked
-    grade: 0
-    note: "\u4FDD\u7559\u6765\u6E90\u3001\u65F6\u95F4\u3001\u5730\u70B9\u548C\u5904\u7F6E\u3002"
-  - wordIds: []
-    wordIdPattern: tonight/gate/blocked
-    grade: 1
-    note: "\u4FDD\u7559\u6838\u5FC3\u65F6\u95F4\u5730\u70B9\u5904\u7F6E\u3002"
-  - wordIds: []
-    wordIdPattern: gate/blocked
-    grade: 2
-    note: "\u53EA\u4FDD\u7559\u5730\u70B9\u548C\u5904\u7F6E\u3002"
+  relatedWordCount: 3
+  choiceSets:
+  - title: source
+    choices:
+    - wordId: scout
+      tolerancePenalty: 0
+      note: ""
+    - wordId: fire
+      tolerancePenalty: 20
+      note: ""
+  - title: action
+    choices:
+    - wordId: reported
+      tolerancePenalty: 0
+      note: ""
+    - wordId: gate
+      tolerancePenalty: 20
+      note: ""
+  - title: time
+    choices:
+    - wordId: tonight
+      tolerancePenalty: 0
+      note: ""
+    - wordId: fire
+      tolerancePenalty: 20
+      note: ""
+  - title: place
+    choices:
+    - wordId: gate
+      tolerancePenalty: 0
+      note: ""
+    - wordId: scout
+      tolerancePenalty: 10
+      note: ""
+  - title: result
+    choices:
+    - wordId: blocked
+      tolerancePenalty: 0
+      note: ""
+    - wordId: reported
+      tolerancePenalty: 20
+      note: ""

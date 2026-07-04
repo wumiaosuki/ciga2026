@@ -13,20 +13,18 @@ namespace Ciga2026.Game.Editor
         private const string LevelSequencePath = "Assets/ScriptableObjects/Gameplay/Levels/DefaultLevelSequenceConfig.asset";
         private const string WordLibraryPath = "Assets/ScriptableObjects/Gameplay/Words/DefaultWordLibrary.asset";
         private const string SessionConfigPath = "Assets/ScriptableObjects/Gameplay/Configs/DefaultGameplaySessionConfig.asset";
-        private const string GradePenaltyConfigPath = "Assets/ScriptableObjects/Gameplay/Configs/DefaultGradePenaltyConfig.asset";
         private const string LevelFolderPath = "Assets/ScriptableObjects/Gameplay/Levels";
+        private const string DayFolderPath = "Assets/ScriptableObjects/Gameplay/Days";
 
         private readonly string[] tabNames = { "关卡", "基础配置" };
 
         private LevelSequenceConfig levelSequenceConfig;
         private WordLibrary wordLibrary;
         private GameplaySessionConfig sessionConfig;
-        private GradePenaltyConfig gradePenaltyConfig;
 
         private SerializedObject levelSequenceSerializedObject;
         private SerializedObject wordLibrarySerializedObject;
         private SerializedObject sessionConfigSerializedObject;
-        private SerializedObject gradePenaltySerializedObject;
         private SerializedObject selectedLevelSerializedObject;
 
         private Vector2 levelListScroll;
@@ -117,7 +115,7 @@ namespace Ciga2026.Game.Editor
 
         private bool HasRequiredAssets()
         {
-            return levelSequenceConfig != null && wordLibrary != null && sessionConfig != null && gradePenaltyConfig != null;
+            return levelSequenceConfig != null && wordLibrary != null && sessionConfig != null;
         }
 
         private void DrawMissingAssetsHelp()
@@ -127,7 +125,6 @@ namespace Ciga2026.Game.Editor
             levelSequenceConfig = (LevelSequenceConfig)EditorGUILayout.ObjectField("关卡流程", levelSequenceConfig, typeof(LevelSequenceConfig), false);
             wordLibrary = (WordLibrary)EditorGUILayout.ObjectField("词库", wordLibrary, typeof(WordLibrary), false);
             sessionConfig = (GameplaySessionConfig)EditorGUILayout.ObjectField("玩法配置", sessionConfig, typeof(GameplaySessionConfig), false);
-            gradePenaltyConfig = (GradePenaltyConfig)EditorGUILayout.ObjectField("扣分配置", gradePenaltyConfig, typeof(GradePenaltyConfig), false);
 
             RebuildSerializedObjects();
         }
@@ -192,46 +189,24 @@ namespace Ciga2026.Game.Editor
             }
 
             levelSequenceSerializedObject.Update();
-            var levelsProperty = levelSequenceSerializedObject.FindProperty("levels");
-            selectedLevelIndex = Mathf.Clamp(selectedLevelIndex, 0, Mathf.Max(0, levelsProperty.arraySize - 1));
+            var daysProperty = levelSequenceSerializedObject.FindProperty("days");
+            selectedLevelIndex = Mathf.Clamp(selectedLevelIndex, 0, Mathf.Max(0, levelSequenceConfig.Count - 1));
 
             levelListScroll = EditorGUILayout.BeginScrollView(levelListScroll);
-            for (var i = 0; i < levelsProperty.arraySize; i++)
+            EditorGUILayout.PropertyField(daysProperty, new GUIContent("天数 SO"), true);
+            EditorGUILayout.Space(6f);
+
+            for (var i = 0; i < levelSequenceConfig.Count; i++)
             {
-                var levelProperty = levelsProperty.GetArrayElementAtIndex(i);
-                var level = levelProperty.objectReferenceValue as InformationDefinition;
-                using (new EditorGUILayout.HorizontalScope())
+                if (!levelSequenceConfig.TryGetLevel(i, out var level, out var dayIndex, out var dayLevelIndex, out _))
                 {
-                    var label = level != null ? $"{i + 1}. {GetLevelDisplayName(level)}" : $"{i + 1}. <空关卡>";
-                    var isSelected = selectedLevelIndex == i;
-                    if (GUILayout.Toggle(isSelected, label, "Button"))
-                    {
-                        SelectLevel(i);
-                    }
-
-                    if (GUILayout.Button("↑", GUILayout.Width(24f)) && i > 0)
-                    {
-                        levelsProperty.MoveArrayElement(i, i - 1);
-                        selectedLevelIndex = i - 1;
-                    }
-
-                    if (GUILayout.Button("↓", GUILayout.Width(24f)) && i < levelsProperty.arraySize - 1)
-                    {
-                        levelsProperty.MoveArrayElement(i, i + 1);
-                        selectedLevelIndex = i + 1;
-                    }
+                    continue;
                 }
 
-                using (new EditorGUILayout.HorizontalScope())
+                var label = $"Day {dayIndex + 1}-{dayLevelIndex + 1}. {GetLevelDisplayName(level)}";
+                if (GUILayout.Toggle(selectedLevelIndex == i, label, "Button"))
                 {
-                    EditorGUILayout.PropertyField(levelProperty, GUIContent.none);
-
-                    if (GUILayout.Button("移除", GUILayout.Width(48f)))
-                    {
-                        levelsProperty.DeleteArrayElementAtIndex(i);
-                        selectedLevelIndex = Mathf.Clamp(selectedLevelIndex, 0, Mathf.Max(0, levelsProperty.arraySize - 1));
-                        break;
-                    }
+                    SelectLevel(i);
                 }
             }
             EditorGUILayout.EndScrollView();
@@ -258,53 +233,14 @@ namespace Ciga2026.Game.Editor
             DrawProperty("informationText", "信息文本");
 
             EditorGUILayout.Space(8f);
-            DrawAvailableWordsEditor();
-
-            EditorGUILayout.Space(8f);
-            var answersProperty = selectedLevelSerializedObject.FindProperty("answerCombinations");
-            EditorGUILayout.PropertyField(answersProperty, new GUIContent("评分档答案"), true);
+            DrawProperty("relatedWordCount", "关联词数量");
+            DrawProperty("choiceSets", "互斥词组");
 
             EditorGUILayout.EndScrollView();
 
             if (selectedLevelSerializedObject.ApplyModifiedProperties())
             {
                 EditorUtility.SetDirty(selectedLevelSerializedObject.targetObject);
-            }
-        }
-
-        private void DrawAvailableWordsEditor()
-        {
-            var wordsProperty = selectedLevelSerializedObject.FindProperty("availableWordIds");
-            EditorGUILayout.LabelField("本关可用词语", EditorStyles.boldLabel);
-
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                if (GUILayout.Button("添加空词 ID", GUILayout.Width(100f)))
-                {
-                    wordsProperty.InsertArrayElementAtIndex(wordsProperty.arraySize);
-                    wordsProperty.GetArrayElementAtIndex(wordsProperty.arraySize - 1).stringValue = string.Empty;
-                }
-
-                if (GUILayout.Button("清空", GUILayout.Width(56f)) && EditorUtility.DisplayDialog("清空词语", "确认清空当前关卡的可用词语？", "清空", "取消"))
-                {
-                    wordsProperty.ClearArray();
-                }
-            }
-
-            for (var i = 0; i < wordsProperty.arraySize; i++)
-            {
-                var wordProperty = wordsProperty.GetArrayElementAtIndex(i);
-                using (new EditorGUILayout.HorizontalScope())
-                {
-                    wordProperty.stringValue = EditorGUILayout.TextField(wordProperty.stringValue);
-                    EditorGUILayout.LabelField(GetWordDisplayText(wordProperty.stringValue), GUILayout.Width(84f));
-
-                    if (GUILayout.Button("删", GUILayout.Width(32f)))
-                    {
-                        wordsProperty.DeleteArrayElementAtIndex(i);
-                        break;
-                    }
-                }
             }
         }
 
@@ -393,16 +329,11 @@ namespace Ciga2026.Game.Editor
                 levelSequenceConfig = (LevelSequenceConfig)EditorGUILayout.ObjectField("默认关卡流程", levelSequenceConfig, typeof(LevelSequenceConfig), false);
                 wordLibrary = (WordLibrary)EditorGUILayout.ObjectField("默认词库", wordLibrary, typeof(WordLibrary), false);
                 sessionConfig = (GameplaySessionConfig)EditorGUILayout.ObjectField("玩法会话配置", sessionConfig, typeof(GameplaySessionConfig), false);
-                gradePenaltyConfig = (GradePenaltyConfig)EditorGUILayout.ObjectField("评分扣分配置", gradePenaltyConfig, typeof(GradePenaltyConfig), false);
             }
 
             RebuildSerializedObjects();
 
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                DrawConfigObjectEditor("玩法会话配置", sessionConfigSerializedObject);
-                DrawConfigObjectEditor("评分扣分配置", gradePenaltySerializedObject);
-            }
+            DrawConfigObjectEditor("玩法会话配置", sessionConfigSerializedObject);
 
             EditorGUILayout.Space(8f);
             DrawValidationSummary();
@@ -478,20 +409,38 @@ namespace Ciga2026.Game.Editor
                 issues.Add($"词库存在重复 ID：{duplicateId}");
             }
 
-            for (var i = 0; i < levelSequenceConfig.Levels.Count; i++)
+            for (var i = 0; i < levelSequenceConfig.Count; i++)
             {
-                var level = levelSequenceConfig.Levels[i];
+                if (!levelSequenceConfig.TryGetLevel(i, out var level))
+                {
+                    issues.Add($"第 {i + 1} 关为空。");
+                    continue;
+                }
+
                 if (level == null)
                 {
                     issues.Add($"第 {i + 1} 关为空。");
                     continue;
                 }
 
-                foreach (var wordId in level.AvailableWordIds)
+                foreach (var choiceSet in level.ChoiceSets)
                 {
-                    if (!wordIds.Contains(wordId))
+                    if (choiceSet == null)
                     {
-                        issues.Add($"第 {i + 1} 关可用词不存在：{wordId}");
+                        continue;
+                    }
+
+                    foreach (var choice in choiceSet.Choices)
+                    {
+                        if (choice == null || string.IsNullOrWhiteSpace(choice.WordId))
+                        {
+                            continue;
+                        }
+
+                        if (!wordIds.Contains(choice.WordId))
+                        {
+                            issues.Add($"第 {i + 1} 关词组选项不存在：{choice.WordId}");
+                        }
                     }
                 }
             }
@@ -510,7 +459,6 @@ namespace Ciga2026.Game.Editor
             levelSequenceConfig = LoadOrFindAsset<LevelSequenceConfig>(LevelSequencePath);
             wordLibrary = LoadOrFindAsset<WordLibrary>(WordLibraryPath);
             sessionConfig = LoadOrFindAsset<GameplaySessionConfig>(SessionConfigPath);
-            gradePenaltyConfig = LoadOrFindAsset<GradePenaltyConfig>(GradePenaltyConfigPath);
             selectedLevelIndex = 0;
             RebuildSerializedObjects();
             RefreshSelectedLevelSerializedObject();
@@ -523,7 +471,6 @@ namespace Ciga2026.Game.Editor
             ApplySerializedObject(levelSequenceSerializedObject);
             ApplySerializedObject(wordLibrarySerializedObject);
             ApplySerializedObject(sessionConfigSerializedObject);
-            ApplySerializedObject(gradePenaltySerializedObject);
             ApplySerializedObject(selectedLevelSerializedObject);
 
             AssetDatabase.SaveAssets();
@@ -547,7 +494,6 @@ namespace Ciga2026.Game.Editor
             levelSequenceSerializedObject = levelSequenceConfig != null ? new SerializedObject(levelSequenceConfig) : null;
             wordLibrarySerializedObject = wordLibrary != null ? new SerializedObject(wordLibrary) : null;
             sessionConfigSerializedObject = sessionConfig != null ? new SerializedObject(sessionConfig) : null;
-            gradePenaltySerializedObject = gradePenaltyConfig != null ? new SerializedObject(gradePenaltyConfig) : null;
             RefreshSelectedLevelSerializedObject();
         }
 
@@ -582,21 +528,40 @@ namespace Ciga2026.Game.Editor
             }
 
             selectedLevelSerializedObject.Update();
-            var wordsProperty = selectedLevelSerializedObject.FindProperty("availableWordIds");
-            for (var i = 0; i < wordsProperty.arraySize; i++)
+            var choiceSetsProperty = selectedLevelSerializedObject.FindProperty("choiceSets");
+            for (var i = 0; i < choiceSetsProperty.arraySize; i++)
             {
-                if (wordsProperty.GetArrayElementAtIndex(i).stringValue == wordId)
+                var choicesProperty = choiceSetsProperty.GetArrayElementAtIndex(i).FindPropertyRelative("choices");
+                if (choicesProperty == null)
                 {
-                    statusMessage = $"当前关卡已包含词语：{wordId}";
-                    return;
+                    continue;
+                }
+
+                for (var j = 0; j < choicesProperty.arraySize; j++)
+                {
+                    if (choicesProperty.GetArrayElementAtIndex(j).FindPropertyRelative("wordId").stringValue == wordId)
+                    {
+                        statusMessage = $"当前关卡已包含词语：{wordId}";
+                        return;
+                    }
                 }
             }
 
-            wordsProperty.InsertArrayElementAtIndex(wordsProperty.arraySize);
-            wordsProperty.GetArrayElementAtIndex(wordsProperty.arraySize - 1).stringValue = wordId;
+            choiceSetsProperty.InsertArrayElementAtIndex(choiceSetsProperty.arraySize);
+            var choiceSetProperty = choiceSetsProperty.GetArrayElementAtIndex(choiceSetsProperty.arraySize - 1);
+            choiceSetProperty.FindPropertyRelative("title").stringValue = wordId;
+
+            var newChoicesProperty = choiceSetProperty.FindPropertyRelative("choices");
+            newChoicesProperty.ClearArray();
+            newChoicesProperty.InsertArrayElementAtIndex(0);
+            var choiceProperty = newChoicesProperty.GetArrayElementAtIndex(0);
+            choiceProperty.FindPropertyRelative("wordId").stringValue = wordId;
+            choiceProperty.FindPropertyRelative("tolerancePenalty").intValue = 0;
+            choiceProperty.FindPropertyRelative("note").stringValue = string.Empty;
+
             selectedLevelSerializedObject.ApplyModifiedProperties();
             EditorUtility.SetDirty(selectedLevelSerializedObject.targetObject);
-            statusMessage = $"已加入词语：{wordId}";
+            statusMessage = $"已加入单选词组：{wordId}";
         }
 
         private void CreateAndAppendLevel()
@@ -609,6 +574,7 @@ namespace Ciga2026.Game.Editor
 
             EnsureFolder("Assets/ScriptableObjects/Gameplay");
             EnsureFolder(LevelFolderPath);
+            EnsureFolder(DayFolderPath);
 
             var assetName = AssetDatabase.GenerateUniqueAssetPath($"{LevelFolderPath}/NewInformation.asset");
             var level = CreateInstance<InformationDefinition>();
@@ -620,16 +586,42 @@ namespace Ciga2026.Game.Editor
             AssetDatabase.CreateAsset(level, assetName);
             AssetDatabase.SaveAssets();
 
-            levelSequenceSerializedObject.Update();
-            var levelsProperty = levelSequenceSerializedObject.FindProperty("levels");
+            var day = GetOrCreateFirstDay();
+            var daySerializedObject = new SerializedObject(day);
+            daySerializedObject.Update();
+            var levelsProperty = daySerializedObject.FindProperty("levels");
             levelsProperty.InsertArrayElementAtIndex(levelsProperty.arraySize);
             levelsProperty.GetArrayElementAtIndex(levelsProperty.arraySize - 1).objectReferenceValue = level;
-            selectedLevelIndex = levelsProperty.arraySize - 1;
-            levelSequenceSerializedObject.ApplyModifiedProperties();
-            EditorUtility.SetDirty(levelSequenceConfig);
+            selectedLevelIndex = levelSequenceConfig.Count;
+            daySerializedObject.ApplyModifiedProperties();
+            EditorUtility.SetDirty(day);
 
             RefreshSelectedLevelSerializedObject();
             statusMessage = $"已创建关卡：{assetName}";
+        }
+
+        private DayDefinition GetOrCreateFirstDay()
+        {
+            if (levelSequenceConfig.Days.Count > 0 && levelSequenceConfig.Days[0] != null)
+            {
+                return levelSequenceConfig.Days[0];
+            }
+
+            var dayAssetName = AssetDatabase.GenerateUniqueAssetPath($"{DayFolderPath}/Day_001.asset");
+            var day = CreateInstance<DayDefinition>();
+            var serializedDay = new SerializedObject(day);
+            serializedDay.FindProperty("title").stringValue = "Day 1";
+            serializedDay.ApplyModifiedPropertiesWithoutUndo();
+            AssetDatabase.CreateAsset(day, dayAssetName);
+            AssetDatabase.SaveAssets();
+
+            levelSequenceSerializedObject.Update();
+            var daysProperty = levelSequenceSerializedObject.FindProperty("days");
+            daysProperty.InsertArrayElementAtIndex(daysProperty.arraySize);
+            daysProperty.GetArrayElementAtIndex(daysProperty.arraySize - 1).objectReferenceValue = day;
+            levelSequenceSerializedObject.ApplyModifiedProperties();
+            EditorUtility.SetDirty(levelSequenceConfig);
+            return day;
         }
 
         private static void EnsureFolder(string path)
@@ -673,16 +665,6 @@ namespace Ciga2026.Game.Editor
             }
 
             return string.IsNullOrWhiteSpace(level.Id) ? level.name : level.Id;
-        }
-
-        private string GetWordDisplayText(string wordId)
-        {
-            if (wordLibrary == null || string.IsNullOrWhiteSpace(wordId))
-            {
-                return string.Empty;
-            }
-
-            return wordLibrary.TryGetWord(wordId, out var word) ? word.Text : "<缺失>";
         }
     }
 }
