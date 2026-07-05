@@ -44,24 +44,13 @@ namespace Ciga2026.Game.UI
         [SerializeField]
         private string npcDefaultAnimation = "Idle";
 
-        [Tooltip("关卡剩余时间比例低于半闭眼阈值时循环播放的 NPC 动画。")]
+        [Tooltip("中段天数循环播放的 NPC 动画。")]
         [SerializeField]
         private string npcHalfClosedEyeAnimation = "Idle2";
 
-        [Tooltip("关卡剩余时间比例低于睡着阈值时循环播放的 NPC 动画。")]
+        [Tooltip("后段天数循环播放的 NPC 动画。")]
         [SerializeField]
         private string npcSleepingAnimation = "Idle3";
-
-        [Header("NPC 阈值")]
-        [Tooltip("关卡剩余时间比例小于等于该值时，NPC 切到 Idle2 半闭眼。")]
-        [SerializeField]
-        [Range(0f, 1f)]
-        private float halfClosedEyeRemainingRatio = 0.5f;
-
-        [Tooltip("关卡剩余时间比例小于等于该值时，NPC 切到 Idle3 睡着。")]
-        [SerializeField]
-        [Range(0f, 1f)]
-        private float sleepingRemainingRatio = 0.2f;
 
         private string currentNpcAnimation;
         private PlayerAnimationState playerAnimationState;
@@ -181,23 +170,23 @@ namespace Ciga2026.Game.UI
         }
 
         /// <summary>
-        /// 按关卡剩余时间比例刷新 NPC 循环动画。
+        /// 按天数档位刷新 NPC 循环动画。
         /// </summary>
-        /// <param name="remainingRatio">当前关卡剩余时间比例，范围 0 到 1。</param>
-        public void RefreshNpcByRemainingRatio(float remainingRatio)
+        /// <param name="dayStageIndex">向下取整得到的天数档位。0 为默认，1 为半闭眼，2 为睡着。</param>
+        public void RefreshNpcByDayStage(int dayStageIndex)
         {
-            var targetAnimation = GetNpcAnimation(Mathf.Clamp01(remainingRatio));
+            var targetAnimation = GetNpcAnimation(dayStageIndex);
             PlayNpcLoop(targetAnimation);
         }
 
-        private string GetNpcAnimation(float remainingRatio)
+        private string GetNpcAnimation(int dayStageIndex)
         {
-            if (remainingRatio <= Mathf.Clamp01(sleepingRemainingRatio) && !string.IsNullOrWhiteSpace(npcSleepingAnimation))
+            if (dayStageIndex >= 2 && !string.IsNullOrWhiteSpace(npcSleepingAnimation))
             {
                 return npcSleepingAnimation;
             }
 
-            if (remainingRatio <= Mathf.Clamp01(halfClosedEyeRemainingRatio) && !string.IsNullOrWhiteSpace(npcHalfClosedEyeAnimation))
+            if (dayStageIndex >= 1 && !string.IsNullOrWhiteSpace(npcHalfClosedEyeAnimation))
             {
                 return npcHalfClosedEyeAnimation;
             }

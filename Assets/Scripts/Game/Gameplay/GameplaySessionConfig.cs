@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 namespace Ciga2026.Game.Gameplay
@@ -9,6 +11,8 @@ namespace Ciga2026.Game.Gameplay
     [CreateAssetMenu(fileName = "GameplaySessionConfig", menuName = "Ciga2026/Gameplay/Session Config")]
     public sealed class GameplaySessionConfig : ScriptableObject
     {
+        private const string DefaultRuntimeConfigFileName = "GameplaySessionConfig.json";
+
         [Header("容忍度")]
         [Tooltip("一局开始时的全局容忍度。降到 0 时游戏结束。")]
         [Min(1)]
@@ -99,10 +103,18 @@ namespace Ciga2026.Game.Gameplay
         [SerializeField]
         private List<AudioClip> voiceSfxClips = new();
 
+        [Header("运行时 JSON 覆盖")]
+        [Tooltip("StreamingAssets 下的热更配置文件名。文件不存在或解析失败时使用本 SO 的默认值。")]
+        [SerializeField]
+        private string runtimeConfigFileName = DefaultRuntimeConfigFileName;
+
+        private RuntimeGameplaySessionConfig runtimeConfig;
+        private AnimationCurve runtimeLevelDurationMultiplierCurve;
+
         /// <summary>
         /// 一局开始时的全局容忍度。
         /// </summary>
-        public int InitialTolerance => initialTolerance;
+        public int InitialTolerance => Mathf.Max(1, runtimeConfig != null ? runtimeConfig.initialTolerance : initialTolerance);
 
         /// <summary>
         /// 全局累计扣分到评分档的阈值配置。
@@ -112,32 +124,32 @@ namespace Ciga2026.Game.Gameplay
         /// <summary>
         /// 单次评分为 A 时回复的容忍度。
         /// </summary>
-        public int GradeARecovery => gradeARecovery;
+        public int GradeARecovery => Mathf.Max(0, runtimeConfig != null ? runtimeConfig.gradeARecovery : gradeARecovery);
 
         /// <summary>
         /// 单次评分为 B 时回复的容忍度。
         /// </summary>
-        public int GradeBRecovery => gradeBRecovery;
+        public int GradeBRecovery => Mathf.Max(0, runtimeConfig != null ? runtimeConfig.gradeBRecovery : gradeBRecovery);
 
         /// <summary>
         /// 触发额外回复所需的连续 A 次数。
         /// </summary>
-        public int ConsecutiveAGradeThreshold => Mathf.Max(2, consecutiveAGradeThreshold);
+        public int ConsecutiveAGradeThreshold => Mathf.Max(2, runtimeConfig != null ? runtimeConfig.consecutiveAGradeThreshold : consecutiveAGradeThreshold);
 
         /// <summary>
         /// 达到连续 A 阈值后，每次 A 额外回复的容忍度。
         /// </summary>
-        public int ConsecutiveAGradeRecoveryBonus => consecutiveAGradeRecoveryBonus;
+        public int ConsecutiveAGradeRecoveryBonus => Mathf.Max(0, runtimeConfig != null ? runtimeConfig.consecutiveAGradeRecoveryBonus : consecutiveAGradeRecoveryBonus);
 
         /// <summary>
         /// 基础选词倒计时时长，单位为秒。
         /// </summary>
-        public float InitialLevelDuration => initialLevelDuration;
+        public float InitialLevelDuration => Mathf.Max(0.01f, runtimeConfig != null ? runtimeConfig.initialLevelDuration : initialLevelDuration);
 
         /// <summary>
         /// 单次选词倒计时清零时扣除的容忍度。
         /// </summary>
-        public int SelectionTimeoutPenalty => Mathf.Max(0, selectionTimeoutPenalty);
+        public int SelectionTimeoutPenalty => Mathf.Max(0, runtimeConfig != null ? runtimeConfig.selectionTimeoutPenalty : selectionTimeoutPenalty);
 
         /// <summary>
         /// 主菜单背景音乐。
@@ -157,7 +169,7 @@ namespace Ciga2026.Game.Gameplay
         /// <summary>
         /// 选词扣分达到该阈值时播放警告音效。
         /// </summary>
-        public int WarningPenaltyThreshold => Mathf.Max(0, warningPenaltyThreshold);
+        public int WarningPenaltyThreshold => Mathf.Max(0, runtimeConfig != null ? runtimeConfig.warningPenaltyThreshold : warningPenaltyThreshold);
 
         /// <summary>
         /// 高扣分警告音效。
@@ -179,6 +191,47 @@ namespace Ciga2026.Game.Gameplay
         /// </summary>
         public IReadOnlyList<AudioClip> VoiceSfxClips => voiceSfxClips;
 
+        private void OnEnable()
+        {
+            ReloadRuntimeConfig();
+        }
+
+        /// <summary>
+        /// 从 StreamingAssets 重新读取运行时 JSON 配置。
+        /// </summary>
+        public void ReloadRuntimeConfig()
+        {
+            runtimeConfig = null;
+            runtimeLevelDurationMultiplierCurve = null;
+
+            var path = GetRuntimeConfigPath();
+            if (string.IsNullOrEmpty(path) || !File.Exists(path))
+            {
+                return;
+            }
+
+            try
+            {
+                var json = File.ReadAllText(path);
+                var parsedConfig = JsonUtility.FromJson<RuntimeGameplaySessionConfig>(json);
+                if (parsedConfig == null)
+                {
+                    Debug.LogWarning($"玩法 JSON 配置解析为空，已使用 SO 默认值：{path}");
+                    return;
+                }
+
+                runtimeConfig = parsedConfig;
+                runtimeLevelDurationMultiplierCurve = CreateRuntimeDurationCurve(parsedConfig.levelDurationMultiplierCurve);
+                Debug.Log($"已应用玩法 JSON 配置：{path}，初始容忍度={InitialTolerance}，基础选词时间={InitialLevelDuration:0.###}，超时扣分={SelectionTimeoutPenalty}");
+            }
+            catch (Exception exception)
+            {
+                runtimeConfig = null;
+                runtimeLevelDurationMultiplierCurve = null;
+                Debug.LogWarning($"读取玩法 JSON 配置失败，已使用 SO 默认值：{path}\n{exception.Message}");
+            }
+        }
+
         /// <summary>
         /// 按全局累计扣分阈值获取评分档位。
         /// </summary>
@@ -187,6 +240,28 @@ namespace Ciga2026.Game.Gameplay
         public AnswerGrade GetGradeByTotalPenalty(int totalPenalty)
         {
             var penalty = Mathf.Max(0, totalPenalty);
+            var runtimeThresholds = runtimeConfig?.gradeThresholds;
+            if (runtimeThresholds != null && runtimeThresholds.Count > 0)
+            {
+                var fallbackGrade = AnswerGrade.E;
+                for (var i = 0; i < runtimeThresholds.Count; i++)
+                {
+                    var entry = runtimeThresholds[i];
+                    if (entry == null)
+                    {
+                        continue;
+                    }
+
+                    fallbackGrade = ToAnswerGrade(entry.grade);
+                    if (penalty <= Mathf.Max(0, entry.maxTotalPenalty))
+                    {
+                        return fallbackGrade;
+                    }
+                }
+
+                return fallbackGrade;
+            }
+
             GradeThresholdEntry fallback = null;
 
             for (var i = 0; i < gradeThresholds.Count; i++)
@@ -216,11 +291,73 @@ namespace Ciga2026.Game.Gameplay
         public float GetLevelDuration(int levelIndex, int levelCount)
         {
             var normalizedProgress = levelCount <= 1 ? 0f : Mathf.Clamp01((float)levelIndex / (levelCount - 1));
-            var multiplier = levelDurationMultiplierCurve != null
-                ? Mathf.Max(0.01f, levelDurationMultiplierCurve.Evaluate(normalizedProgress))
+            var durationCurve = runtimeLevelDurationMultiplierCurve ?? levelDurationMultiplierCurve;
+            var multiplier = durationCurve != null
+                ? Mathf.Max(0.01f, durationCurve.Evaluate(normalizedProgress))
                 : 1f;
 
-            return Mathf.Max(0.01f, initialLevelDuration * multiplier);
+            return Mathf.Max(0.01f, InitialLevelDuration * multiplier);
+        }
+
+        private string GetRuntimeConfigPath()
+        {
+            var fileName = string.IsNullOrWhiteSpace(runtimeConfigFileName)
+                ? DefaultRuntimeConfigFileName
+                : runtimeConfigFileName.Trim();
+            return Path.Combine(Application.streamingAssetsPath, fileName);
+        }
+
+        private static AnimationCurve CreateRuntimeDurationCurve(List<RuntimeCurveKey> keys)
+        {
+            if (keys == null || keys.Count == 0)
+            {
+                return null;
+            }
+
+            var keyframes = new Keyframe[keys.Count];
+            for (var i = 0; i < keys.Count; i++)
+            {
+                var key = keys[i];
+                keyframes[i] = key != null
+                    ? new Keyframe(Mathf.Clamp01(key.time), Mathf.Max(0.01f, key.value))
+                    : new Keyframe(0f, 1f);
+            }
+
+            return new AnimationCurve(keyframes);
+        }
+
+        private static AnswerGrade ToAnswerGrade(int grade)
+        {
+            return Enum.IsDefined(typeof(AnswerGrade), grade) ? (AnswerGrade)grade : AnswerGrade.E;
+        }
+
+        [Serializable]
+        private sealed class RuntimeGameplaySessionConfig
+        {
+            public int initialTolerance = 100;
+            public List<RuntimeGradeThresholdEntry> gradeThresholds = new();
+            public int gradeARecovery = 20;
+            public int gradeBRecovery = 10;
+            public int consecutiveAGradeThreshold = 2;
+            public int consecutiveAGradeRecoveryBonus = 10;
+            public float initialLevelDuration = 5f;
+            public int selectionTimeoutPenalty = 10;
+            public List<RuntimeCurveKey> levelDurationMultiplierCurve = new();
+            public int warningPenaltyThreshold = 20;
+        }
+
+        [Serializable]
+        private sealed class RuntimeGradeThresholdEntry
+        {
+            public int grade;
+            public int maxTotalPenalty;
+        }
+
+        [Serializable]
+        private sealed class RuntimeCurveKey
+        {
+            public float time;
+            public float value;
         }
     }
 }

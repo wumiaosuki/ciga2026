@@ -10,7 +10,7 @@ namespace Ciga2026.Game.Gameplay
         /// </summary>
         /// <param name="isMatched">是否命中任意答案组合。</param>
         /// <param name="grade">命中的评分档位。未命中时为 null。</param>
-        /// <param name="tolerancePenalty">本次扣除的容忍度。</param>
+        /// <param name="tolerancePenalty">本次用于评分展示的累计选词扣分。</param>
         /// <param name="toleranceRecovery">本次回复的容忍度。</param>
         /// <param name="consecutiveAGradeCount">当前连续 A 评分次数。</param>
         /// <param name="remainingTolerance">扣除和回复结算后的剩余容忍度。</param>
@@ -47,7 +47,7 @@ namespace Ciga2026.Game.Gameplay
         public AnswerGrade? Grade { get; }
 
         /// <summary>
-        /// 本次扣除的容忍度。
+        /// 本次用于评分展示的累计选词扣分。
         /// </summary>
         public int TolerancePenalty { get; }
 

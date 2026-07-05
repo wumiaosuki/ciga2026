@@ -63,6 +63,9 @@ namespace Ciga2026.Game.UI
         [Tooltip("测试用 GM 按钮，点击后直接进入胜利结算。")]
         public Button gmButton;
 
+        [Tooltip("游戏流程内的退出游戏按钮。")]
+        public Button gameExitButton;
+
         [Tooltip("提交后显示评分、扣分或失败原因的 TMP 文本。")]
         public TextMeshProUGUI feedbackText;
 

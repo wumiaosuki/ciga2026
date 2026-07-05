@@ -85,7 +85,7 @@ namespace Ciga2026.Game.UI
         private string failurePanelResourcePath = "Prefab/FailiuePanel";
 
         [Header("角色动画")]
-        [Tooltip("CharacterStage 下的 Spine 动画控制器，用于根据选词和关卡时间切换角色动画。")]
+        [Tooltip("CharacterStage 下的 Spine 动画控制器，用于根据选词和天数进度切换角色动画。")]
         [SerializeField]
         private GameCharacterSpineAnimator characterAnimator;
 
@@ -139,7 +139,19 @@ namespace Ciga2026.Game.UI
         private Vector2 inputTextDefaultAnchoredPosition;
         private bool hasInputTextDefaultAnchoredPosition;
         private float initialInformationPanelHeight = -1f;
+        private SettlementMode settlementMode;
+        private InformationDefinition pendingDayLevel;
+        private int pendingDayIndex = -1;
+        private SentenceEvaluationResult pendingDayResult;
+        private bool pendingDayWasTimeout;
         private const string FailurePanelId = "FailiuePanel";
+
+        private enum SettlementMode
+        {
+            None,
+            FinalSettlement,
+            DayTransition
+        }
 
         [System.Serializable]
         private sealed class GradeSpriteEntry
@@ -179,6 +191,11 @@ namespace Ciga2026.Game.UI
                 bind.gmButton.onClick.AddListener(OnGmButtonClicked);
             }
 
+            if (bind != null && bind.gameExitButton != null)
+            {
+                bind.gameExitButton.onClick.AddListener(OnGameExitClicked);
+            }
+
             if (bind != null && bind.settlementRestartButton != null)
             {
                 bind.settlementRestartButton.onClick.AddListener(OnSettlementRestartClicked);
@@ -204,6 +221,11 @@ namespace Ciga2026.Game.UI
                 bind.gmButton.onClick.RemoveListener(OnGmButtonClicked);
             }
 
+            if (bind != null && bind.gameExitButton != null)
+            {
+                bind.gameExitButton.onClick.RemoveListener(OnGameExitClicked);
+            }
+
             if (bind != null && bind.settlementRestartButton != null)
             {
                 bind.settlementRestartButton.onClick.RemoveListener(OnSettlementRestartClicked);
@@ -226,7 +248,6 @@ namespace Ciga2026.Game.UI
 
             remainingLevelTime = Mathf.Max(0f, remainingLevelTime - Time.deltaTime);
             RefreshTimerView();
-            RefreshCharacterTimerAnimation();
 
             if (remainingLevelTime <= 0f)
             {
@@ -252,13 +273,13 @@ namespace Ciga2026.Game.UI
                 return;
             }
 
-            var isCorrectChoice = IsCorrectChoice(choiceSet, entry);
+            var isCorrectChoiceInOrder = IsCorrectChoiceInCurrentOrder(choiceSet, entry);
             var effectivePenalty = GetEffectiveSelectionPenalty(choiceSet, entry);
 
             session.ApplyWordSelectionPenalty(effectivePenalty);
             GameAudioPlayer.PlayRandomVoice(sessionConfig);
             GameAudioPlayer.PlayPenaltyWarningIfNeeded(sessionConfig, effectivePenalty);
-            AppendSelectedWord(entry, isCorrectChoice);
+            AppendSelectedWord(entry, isCorrectChoiceInOrder);
             wordEntriesByItem.Remove(item);
             choiceSetsByItem.Remove(item);
             RemoveChoiceSetFromLibrary(choiceSet, item);
@@ -267,7 +288,7 @@ namespace Ciga2026.Game.UI
             RefillVisibleChoiceSets();
             RefreshToleranceView();
             RefreshSubmitInteractable();
-            ShakeInputTextIfWrong(isCorrectChoice);
+            ShakeInputTextIfWrong(isCorrectChoiceInOrder);
 
             if (session.IsGameOver)
             {
@@ -305,6 +326,7 @@ namespace Ciga2026.Game.UI
             RefillVisibleChoiceSets();
             ResetSelectionTimer();
             characterAnimator?.ResetForLevel();
+            RefreshCharacterDayAnimation();
             RefreshSubmitInteractable();
         }
 
@@ -313,10 +335,12 @@ namespace Ciga2026.Game.UI
         /// </summary>
         public void StartLevelSequence()
         {
+            sessionConfig?.ReloadRuntimeConfig();
             GameAudioPlayer.PlayGameBgm(sessionConfig);
             session = new BroadcastGameplaySession(sessionConfig);
             currentLevelIndex = 0;
             currentDayIndex = -1;
+            ClearPendingDayTransition();
             HideSettlement();
             HideGradeImage();
             ReleaseFailurePanel();
@@ -353,6 +377,12 @@ namespace Ciga2026.Game.UI
                 message: session != null
                     ? $"GM 测试胜利，当前容忍度 {session.CurrentTolerance}/{session.InitialTolerance}。"
                     : "GM 测试胜利。");
+        }
+
+        private void OnGameExitClicked()
+        {
+            GameAudioPlayer.PlayUiClick(sessionConfig);
+            ReturnToMainMenuFromGame();
         }
 
         private void ResolveSubmission(bool allowEmptyAnswer, bool isTimeout)
@@ -416,6 +446,12 @@ namespace Ciga2026.Game.UI
 
             if (TryGetLevel(currentLevelIndex, out var nextLevel, out var dayIndex, out _, out var isFirstLevelOfDay))
             {
+                if (!result.IsGameOver && !session.IsGameOver && isFirstLevelOfDay && currentDayIndex >= 0 && dayIndex != currentDayIndex)
+                {
+                    ShowDayTransitionPanel(nextLevel, dayIndex, result, isTimeout);
+                    return;
+                }
+
                 NotifyDayIfNeeded(dayIndex, isFirstLevelOfDay);
                 StartRound(nextLevel);
                 SetFeedback($"{BuildRoundSummaryText(result, isTimeout)}进入第 {currentLevelIndex + 1} 关。");
@@ -445,6 +481,13 @@ namespace Ciga2026.Game.UI
         private void OnSettlementRestartClicked()
         {
             GameAudioPlayer.PlayUiClick(sessionConfig);
+
+            if (settlementMode == SettlementMode.DayTransition)
+            {
+                ContinuePendingDay();
+                return;
+            }
+
             StartLevelSequence();
         }
 
@@ -452,10 +495,87 @@ namespace Ciga2026.Game.UI
         {
             GameAudioPlayer.PlayUiClick(sessionConfig);
 
+            if (settlementMode == SettlementMode.DayTransition)
+            {
+                ReturnToMainMenuFromGame();
+                return;
+            }
+
             if (GameStateManager.TryGetInstance(out var gameStateManager))
             {
                 gameStateManager.ExitGame();
             }
+        }
+
+        private void ShowDayTransitionPanel(InformationDefinition nextLevel, int nextDayIndex, SentenceEvaluationResult result, bool isTimeout)
+        {
+            pendingDayLevel = nextLevel;
+            pendingDayIndex = nextDayIndex;
+            pendingDayResult = result;
+            pendingDayWasTimeout = isTimeout;
+            settlementMode = SettlementMode.DayTransition;
+            isTimerRunning = false;
+            SetSubmitInteractable(false);
+            HideGradeImage();
+            HideTvShowImage();
+
+            if (bind == null || bind.settlementPanel == null)
+            {
+                ContinuePendingDay();
+                return;
+            }
+
+            bind.settlementPanel.SetActive(true);
+            SetSettlementButtonLabels("继续下一天", "返回主菜单");
+            SetSettlementTextVisible(false);
+        }
+
+        private void ContinuePendingDay()
+        {
+            if (pendingDayLevel == null)
+            {
+                HideSettlement();
+                return;
+            }
+
+            var nextLevel = pendingDayLevel;
+            var nextDayIndex = pendingDayIndex;
+            var previousResult = pendingDayResult;
+            var previousWasTimeout = pendingDayWasTimeout;
+            ClearPendingDayTransition();
+            HideSettlement();
+            NotifyDayIfNeeded(nextDayIndex, isFirstLevelOfDay: true);
+            StartRound(nextLevel);
+            SetFeedback($"{BuildRoundSummaryText(previousResult, previousWasTimeout)}进入第 {currentLevelIndex + 1} 关。");
+        }
+
+        private void ReturnToMainMenuFromGame()
+        {
+            ClearPendingDayTransition();
+            HideSettlement();
+            ClearWordItems();
+            HideTvShowImage();
+            isTimerRunning = false;
+
+            if (UIManager.TryGetInstance(out var uiManager))
+            {
+                uiManager.ReleasePanel(FailurePanelId);
+                uiManager.ReleasePanel(UIResourceType.Game.ToString());
+                uiManager.ShowPanel(UIResourceType.StartMeau, true);
+            }
+
+            if (GameStateManager.TryGetInstance(out var gameStateManager))
+            {
+                gameStateManager.GoToMainMenu();
+            }
+        }
+
+        private void ClearPendingDayTransition()
+        {
+            pendingDayLevel = null;
+            pendingDayIndex = -1;
+            pendingDayResult = default;
+            pendingDayWasTimeout = false;
         }
 
         private void ShowFailurePanel()
@@ -509,7 +629,7 @@ namespace Ciga2026.Game.UI
             currentLevelDuration = GetLevelDuration();
             remainingLevelTime = currentLevelDuration;
             displayedTimerCentiseconds = -1;
-            isTimerRunning = false;
+            isTimerRunning = informationDefinition != null && session != null && !session.IsGameOver;
             RefreshTimerView();
         }
 
@@ -522,8 +642,7 @@ namespace Ciga2026.Game.UI
 
             if (!HasDrawableWords())
             {
-                isTimerRunning = false;
-                RefreshTimerView();
+                ResolveSubmission(allowEmptyAnswer: true, isTimeout: true);
                 return;
             }
 
@@ -541,7 +660,7 @@ namespace Ciga2026.Game.UI
             }
 
             ResetSelectionTimer();
-            SetFeedback($"选词超时，扣除 {penalty}，本关累计扣除 {session.CurrentRoundPenalty}。");
+            SetFeedback($"选词超时，扣除 {penalty} 容忍度，评分扣分 {session.CurrentRoundPenalty}。");
         }
 
         private float GetLevelDuration()
@@ -728,14 +847,27 @@ namespace Ciga2026.Game.UI
             inputTextShakeCoroutine = StartCoroutine(ShakeInputText(inputTextRect));
         }
 
-        private static int GetEffectiveSelectionPenalty(WordChoiceSet choiceSet, WordChoiceEntry entry)
+        private int GetEffectiveSelectionPenalty(WordChoiceSet choiceSet, WordChoiceEntry entry)
         {
-            if (entry == null || IsCorrectChoice(choiceSet, entry))
+            if (entry == null || IsCorrectChoiceInCurrentOrder(choiceSet, entry))
             {
                 return 0;
             }
 
             return entry.TolerancePenalty;
+        }
+
+        private bool IsCorrectChoiceInCurrentOrder(WordChoiceSet choiceSet, WordChoiceEntry entry)
+        {
+            if (!IsCorrectChoice(choiceSet, entry) || informationDefinition == null)
+            {
+                return false;
+            }
+
+            var expectedChoiceSetIndex = selectedWordIds.Count;
+            return expectedChoiceSetIndex >= 0
+                && expectedChoiceSetIndex < informationDefinition.ChoiceSets.Count
+                && ReferenceEquals(informationDefinition.ChoiceSets[expectedChoiceSetIndex], choiceSet);
         }
 
         private static bool IsCorrectChoice(WordChoiceSet choiceSet, WordChoiceEntry entry)
@@ -1137,15 +1269,44 @@ namespace Ciga2026.Game.UI
             dayStarted?.Invoke(dayIndex + 1);
         }
 
-        private void RefreshCharacterTimerAnimation()
+        private void RefreshCharacterDayAnimation()
         {
             if (characterAnimator == null)
             {
                 return;
             }
 
-            var remainingRatio = currentLevelDuration > 0f ? remainingLevelTime / currentLevelDuration : 0f;
-            characterAnimator.RefreshNpcByRemainingRatio(remainingRatio);
+            var dayStageIndex = GetCurrentDayStageIndex();
+            characterAnimator.RefreshNpcByDayStage(dayStageIndex);
+        }
+
+        private int GetCurrentDayStageIndex()
+        {
+            const int npcDayStageCount = 3;
+
+            var dayCount = GetConfiguredDayCount();
+            var clampedDayIndex = Mathf.Clamp(currentDayIndex, 0, dayCount - 1);
+            var stageIndex = Mathf.FloorToInt((float)clampedDayIndex * npcDayStageCount / dayCount);
+            return Mathf.Clamp(stageIndex, 0, npcDayStageCount - 1);
+        }
+
+        private int GetConfiguredDayCount()
+        {
+            if (levelSequenceConfig == null || levelSequenceConfig.Days == null)
+            {
+                return 1;
+            }
+
+            var count = 0;
+            for (var i = 0; i < levelSequenceConfig.Days.Count; i++)
+            {
+                if (levelSequenceConfig.Days[i] != null)
+                {
+                    count++;
+                }
+            }
+
+            return Mathf.Max(1, count);
         }
 
         private static void SetProgressImage(Image image, float normalizedValue)
@@ -1333,10 +1494,13 @@ namespace Ciga2026.Game.UI
             {
                 bind.settlementPanel.SetActive(false);
             }
+
+            settlementMode = SettlementMode.None;
         }
 
         private void ShowSettlement(bool isVictory, string title, string message)
         {
+            settlementMode = SettlementMode.FinalSettlement;
             isTimerRunning = false;
             SetSubmitInteractable(false);
             HideGradeImage();
@@ -1351,6 +1515,8 @@ namespace Ciga2026.Game.UI
             }
 
             bind.settlementPanel.SetActive(true);
+            SetSettlementTextVisible(true);
+            SetSettlementButtonLabels("重新开始", "退出游戏");
 
             if (bind.settlementTitleText != null)
             {
@@ -1366,13 +1532,58 @@ namespace Ciga2026.Game.UI
             }
         }
 
+        private void SetSettlementButtonLabels(string restartButtonText, string exitButtonText)
+        {
+            SetButtonLabel(bind != null ? bind.settlementRestartButton : null, restartButtonText);
+            SetButtonLabel(bind != null ? bind.settlementExitButton : null, exitButtonText);
+        }
+
+        private void SetSettlementTextVisible(bool visible)
+        {
+            if (bind == null)
+            {
+                return;
+            }
+
+            if (bind.settlementTitleText != null)
+            {
+                bind.settlementTitleText.gameObject.SetActive(visible);
+            }
+
+            if (bind.settlementMessageText != null)
+            {
+                bind.settlementMessageText.gameObject.SetActive(visible);
+            }
+        }
+
+        private static void SetButtonLabel(Button button, string text)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            var tmpText = button.GetComponentInChildren<TextMeshProUGUI>(includeInactive: true);
+            if (tmpText != null)
+            {
+                tmpText.text = text;
+                return;
+            }
+
+            var legacyText = button.GetComponentInChildren<Text>(includeInactive: true);
+            if (legacyText != null)
+            {
+                legacyText.text = text;
+            }
+        }
+
         private static string BuildFeedbackText(SentenceEvaluationResult result, bool isTimeout)
         {
             if (isTimeout)
             {
                 return result.IsGameOver
-                    ? $"时间耗尽，评分 {result.Grade}，本关累计扣除 {result.TolerancePenalty}，容忍度归零。"
-                    : $"时间耗尽，评分 {result.Grade}，本关累计扣除 {result.TolerancePenalty}{BuildRecoveryText(result)}，剩余 {result.RemainingTolerance}。";
+                    ? $"时间耗尽，评分 {result.Grade}，评分扣分 {result.TolerancePenalty}，容忍度归零。"
+                    : $"时间耗尽，评分 {result.Grade}，评分扣分 {result.TolerancePenalty}{BuildRecoveryText(result)}，剩余 {result.RemainingTolerance}。";
             }
 
             if (!result.IsMatched)
@@ -1383,19 +1594,19 @@ namespace Ciga2026.Game.UI
             }
 
             return result.IsGameOver
-                ? $"评分 {result.Grade}，本关累计扣除 {result.TolerancePenalty}{BuildRecoveryText(result)}，容忍度归零。"
-                : $"评分 {result.Grade}，本关累计扣除 {result.TolerancePenalty}{BuildRecoveryText(result)}，剩余 {result.RemainingTolerance}。";
+                ? $"评分 {result.Grade}，评分扣分 {result.TolerancePenalty}{BuildRecoveryText(result)}，容忍度归零。"
+                : $"评分 {result.Grade}，评分扣分 {result.TolerancePenalty}{BuildRecoveryText(result)}，剩余 {result.RemainingTolerance}。";
         }
 
         private static string BuildRoundSummaryText(SentenceEvaluationResult result, bool isTimeout)
         {
             if (isTimeout)
             {
-                return $"上一关时间耗尽，评分 {result.Grade}，累计扣除 {result.TolerancePenalty}。";
+                return $"上一关时间耗尽，评分 {result.Grade}，评分扣分 {result.TolerancePenalty}。";
             }
 
             return result.IsMatched
-                ? $"上一关评分 {result.Grade}，累计扣除 {result.TolerancePenalty}{BuildRecoveryText(result)}。"
+                ? $"上一关评分 {result.Grade}，评分扣分 {result.TolerancePenalty}{BuildRecoveryText(result)}。"
                 : $"上一关未通过，扣除 {result.TolerancePenalty}。";
         }
 

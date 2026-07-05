@@ -30,7 +30,7 @@ MonoBehaviour:
       displayText: "\u8F93\u519B"
       tolerancePenalty: 10
       note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100136"
-  - title: "1. \u5728\u963F\u5BCC\u6C57\u5730\u533A"
+  - title: "2. \u5728\u963F\u5BCC\u6C57\u5730\u533A"
     choices:
     - wordId: 100137
       displayText: "\u5728\u963F\u5BCC\u6C57\u5730\u533A"
@@ -44,7 +44,7 @@ MonoBehaviour:
       displayText: "\u5728\u963F\u798F\u61A8\u5730\u533A"
       tolerancePenalty: 10
       note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100137"
-  - title: "1. \u5BF9\u53CD\u653F\u5E9C\u6B66\u88C5\u7684"
+  - title: "3. \u5BF9\u53CD\u653F\u5E9C\u6B66\u88C5\u7684"
     choices:
     - wordId: 100138
       displayText: "\u5BF9\u53CD\u653F\u5E9C\u6B66\u88C5\u7684"
@@ -58,7 +58,7 @@ MonoBehaviour:
       displayText: "\u5BF9\u996D\u653F\u5E9C\u6B66\u88C5\u7684"
       tolerancePenalty: 10
       note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100138"
-  - title: "1. \u6218\u7565"
+  - title: "4. \u6218\u7565"
     choices:
     - wordId: 100139
       displayText: "\u6218\u7565"
@@ -72,7 +72,7 @@ MonoBehaviour:
       displayText: "\u8D5E\u63A0"
       tolerancePenalty: 10
       note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100139"
-  - title: "1. \u519B\u4E8B\u884C\u52A8"
+  - title: "5. \u519B\u4E8B\u884C\u52A8"
     choices:
     - wordId: 100140
       displayText: "\u519B\u4E8B\u884C\u52A8"
@@ -86,7 +86,7 @@ MonoBehaviour:
       displayText: "\u83CC\u4E8B\u884C\u52A8"
       tolerancePenalty: 10
       note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100140"
-  - title: "1. \u5DF2\u53D6\u5F97"
+  - title: "6. \u5DF2\u53D6\u5F97"
     choices:
     - wordId: 100141
       displayText: "\u5DF2\u53D6\u5F97"
@@ -100,7 +100,7 @@ MonoBehaviour:
       displayText: "\u5DF2\u53BB\u5F97"
       tolerancePenalty: 10
       note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100141"
-  - title: "1. \u90E8\u5206"
+  - title: "7. \u90E8\u5206"
     choices:
     - wordId: 100142
       displayText: "\u90E8\u5206"
@@ -114,7 +114,7 @@ MonoBehaviour:
       displayText: "\u4E0D\u5FFF"
       tolerancePenalty: 10
       note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100142"
-  - title: "1. \u9636\u6BB5\u6027"
+  - title: "8. \u9636\u6BB5\u6027"
     choices:
     - wordId: 100143
       displayText: "\u9636\u6BB5\u6027"
@@ -128,7 +128,7 @@ MonoBehaviour:
       displayText: "\u622A\u65AD\u6027"
       tolerancePenalty: 10
       note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100143"
-  - title: "1. \u80DC\u5229"
+  - title: "9. \u80DC\u5229"
     choices:
     - wordId: 100144
       displayText: "\u80DC\u5229"

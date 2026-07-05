@@ -1,0 +1,24 @@
+{
+  "initialTolerance": 50,
+  "gradeThresholds": [
+    { "grade": 0, "maxTotalPenalty": 0 },
+    { "grade": 1, "maxTotalPenalty": 10 },
+    { "grade": 2, "maxTotalPenalty": 30 },
+    { "grade": 3, "maxTotalPenalty": 50 },
+    { "grade": 4, "maxTotalPenalty": 70 }
+  ],
+  "gradeARecovery": 20,
+  "gradeBRecovery": 10,
+  "consecutiveAGradeThreshold": 2,
+  "consecutiveAGradeRecoveryBonus": 10,
+  "initialLevelDuration": 5.0,
+  "selectionTimeoutPenalty": 10,
+  "levelDurationMultiplierCurve": [
+    { "time": 0.0, "value": 1.0 },
+    { "time": 0.2, "value": 0.9 },
+    { "time": 0.4, "value": 0.8 },
+    { "time": 0.6, "value": 0.7 },
+    { "time": 0.8, "value": 0.6 }
+  ],
+  "warningPenaltyThreshold": 20
+}

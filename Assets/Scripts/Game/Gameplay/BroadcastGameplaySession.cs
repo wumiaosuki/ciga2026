@@ -75,18 +75,17 @@ namespace Ciga2026.Game.Gameplay
         }
 
         /// <summary>
-        /// 选词倒计时清零时立即应用扣分。
+        /// 选词倒计时清零时立即扣除容忍度，但不影响本关评分扣分。
         /// </summary>
-        /// <param name="penalty">超时对应的扣分。</param>
+        /// <param name="penalty">超时对应的容忍度扣分。</param>
         public void ApplySelectionTimeoutPenalty(int penalty)
         {
             var clampedPenalty = Mathf.Max(0, penalty);
-            currentRoundPenalty += clampedPenalty;
             ApplyTolerancePenalty(clampedPenalty);
         }
 
         /// <summary>
-        /// 本关当前累计扣分。
+        /// 本关当前用于评分的累计选词扣分。
         /// </summary>
         public int CurrentRoundPenalty => currentRoundPenalty;
 
