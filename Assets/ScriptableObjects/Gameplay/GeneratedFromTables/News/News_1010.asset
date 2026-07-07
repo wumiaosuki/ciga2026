@@ -156,3 +156,17 @@ MonoBehaviour:
       displayText: "\u4F1A\u53D8\u4E3A"
       tolerancePenalty: 10
       note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100185"
+  - title: "1. \u6674\u5929"
+    choices:
+    - wordId: 100186
+      displayText: "\u6674\u5929"
+      tolerancePenalty: 10
+      note: "\u6807\u51C6\u9009\u8BCD"
+    - wordId: 271
+      displayText: "\u66B4\u96EA"
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100186"
+    - wordId: 272
+      displayText: "\u51B0\u96F9"
+      tolerancePenalty: 10
+      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100186"

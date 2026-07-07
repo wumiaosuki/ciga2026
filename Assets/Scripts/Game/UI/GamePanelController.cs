@@ -375,7 +375,7 @@ namespace Ciga2026.Game.UI
                 isVictory: true,
                 title: "播报完成",
                 message: session != null
-                    ? $"GM 测试胜利，当前容忍度 {session.CurrentTolerance}/{session.InitialTolerance}。"
+                    ? $"GM 测试胜利，当前容忍度 {session.CurrentTolerance}/{session.MaxTolerance}。"
                     : "GM 测试胜利。");
         }
 
@@ -470,12 +470,12 @@ namespace Ciga2026.Game.UI
                 RefreshInformationPanelHeight();
             }
 
-            SetFeedback($"全部关卡完成，最终容忍度 {session.CurrentTolerance}/{session.InitialTolerance}。");
+            SetFeedback($"全部关卡完成，最终容忍度 {session.CurrentTolerance}/{session.MaxTolerance}。");
             SetSubmitInteractable(false);
             ShowSettlement(
                 isVictory: true,
                 title: "播报完成",
-                message: $"全部信息播报完成，最终容忍度 {session.CurrentTolerance}/{session.InitialTolerance}。");
+                message: $"全部信息播报完成，最终容忍度 {session.CurrentTolerance}/{session.MaxTolerance}。");
         }
 
         private void OnSettlementRestartClicked()
@@ -1156,7 +1156,7 @@ namespace Ciga2026.Game.UI
                 return;
             }
 
-            var tolerancePercent = (float)session.CurrentTolerance / session.InitialTolerance;
+            var tolerancePercent = (float)session.CurrentTolerance / session.MaxTolerance;
 
             if (bind.toleranceFillImage != null)
             {
@@ -1165,7 +1165,7 @@ namespace Ciga2026.Game.UI
 
             if (bind.toleranceText != null)
             {
-                bind.toleranceText.text = $"{session.CurrentTolerance}/{session.InitialTolerance}";
+                bind.toleranceText.text = $"{session.CurrentTolerance}/{session.MaxTolerance}";
             }
 
             RefreshHeadImage(tolerancePercent);

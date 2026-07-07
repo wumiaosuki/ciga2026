@@ -1,5 +1,6 @@
 {
   "initialTolerance": 50,
+  "maxTolerance": 100,
   "gradeThresholds": [
     { "grade": 0, "maxTotalPenalty": 0 },
     { "grade": 1, "maxTotalPenalty": 10 },

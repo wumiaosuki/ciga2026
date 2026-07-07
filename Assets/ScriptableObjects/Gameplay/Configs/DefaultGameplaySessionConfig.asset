@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 94080e5f8f65a43a38444f814b67fc91, type: 3}
   m_Name: DefaultGameplaySessionConfig
   m_EditorClassIdentifier: Ciga2026.Framework::Ciga2026.Game.Gameplay.GameplaySessionConfig
-  initialTolerance: 100
+  initialTolerance: 50
+  maxTolerance: 100
   gradeThresholds:
   - grade: 0
     maxTotalPenalty: 0

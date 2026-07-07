@@ -16,20 +16,6 @@ MonoBehaviour:
   informationText: "\u53D7\u6076\u52A3\u5929\u6C14\u5F71\u54CD\uFF0C\u5217\u5B81\u683C\u52D2\u3001\u57FA\u8F85\u4EE5\u53CA\u5854\u4EC0\u5E72\u7684\u9762\u5305\u4F9B\u5E94\u9884\u8BA1\u5C06\u4E8E\u540E\u5929\u6062\u590D\u6B63\u5E38"
   relatedWordCount: 1
   choiceSets:
-  - title: "1. \u6674\u5929"
-    choices:
-    - wordId: 100186
-      displayText: "\u6674\u5929"
-      tolerancePenalty: 10
-      note: "\u6807\u51C6\u9009\u8BCD"
-    - wordId: 271
-      displayText: "\u66B4\u96EA"
-      tolerancePenalty: 10
-      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100186"
-    - wordId: 272
-      displayText: "\u51B0\u96F9"
-      tolerancePenalty: 10
-      note: "\u6DF7\u6DC6\u8BCD\uFF0C\u6240\u5C5E\u9009\u8BCD 100186"
   - title: "1. \u53D7\u6076\u52A3\u5929\u6C14"
     choices:
     - wordId: 100187

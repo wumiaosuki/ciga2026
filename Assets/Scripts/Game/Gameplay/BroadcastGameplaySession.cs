@@ -9,7 +9,8 @@ namespace Ciga2026.Game.Gameplay
     /// </summary>
     public sealed class BroadcastGameplaySession
     {
-        private const int DefaultInitialTolerance = 100;
+        private const int DefaultInitialTolerance = 50;
+        private const int DefaultMaxTolerance = 100;
         private const int DefaultGradeARecovery = 20;
         private const int DefaultGradeBRecovery = 10;
         private const int DefaultConsecutiveAGradeThreshold = 2;
@@ -26,7 +27,8 @@ namespace Ciga2026.Game.Gameplay
         public BroadcastGameplaySession(GameplaySessionConfig sessionConfig)
         {
             this.sessionConfig = sessionConfig;
-            InitialTolerance = Mathf.Max(1, sessionConfig != null ? sessionConfig.InitialTolerance : DefaultInitialTolerance);
+            MaxTolerance = Mathf.Max(1, sessionConfig != null ? sessionConfig.MaxTolerance : DefaultMaxTolerance);
+            InitialTolerance = Mathf.Clamp(sessionConfig != null ? sessionConfig.InitialTolerance : DefaultInitialTolerance, 1, MaxTolerance);
             CurrentTolerance = InitialTolerance;
         }
 
@@ -34,6 +36,11 @@ namespace Ciga2026.Game.Gameplay
         /// 一局开始时的全局容忍度。
         /// </summary>
         public int InitialTolerance { get; }
+
+        /// <summary>
+        /// 当前会话的全局容忍度上限。
+        /// </summary>
+        public int MaxTolerance { get; }
 
         /// <summary>
         /// 当前全局容忍度。
@@ -195,7 +202,7 @@ namespace Ciga2026.Game.Gameplay
                 _ => 0
             };
 
-            CurrentTolerance = Mathf.Min(InitialTolerance, CurrentTolerance + recovery);
+            CurrentTolerance = Mathf.Min(MaxTolerance, CurrentTolerance + recovery);
             return recovery;
         }
     }

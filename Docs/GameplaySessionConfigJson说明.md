@@ -11,7 +11,7 @@ Assets/StreamingAssets/GameplaySessionConfig.json
 成功应用 JSON 时，Unity Console 会出现类似日志：
 
 ```text
-已应用玩法 JSON 配置：.../GameplaySessionConfig.json，初始容忍度=100，基础选词时间=100，超时扣分=10
+已应用玩法 JSON 配置：.../GameplaySessionConfig.json，初始容忍度=50，容忍度上限=100，基础选词时间=5，超时扣分=10
 ```
 
 ## 字段说明
@@ -21,12 +21,24 @@ Assets/StreamingAssets/GameplaySessionConfig.json
 初始容忍度。
 
 ```json
-"initialTolerance": 100
+"initialTolerance": 50
 ```
 
 含义：一局开始时玩家拥有的容忍度。容忍度降到 0 时游戏失败。
 
 建议：必须大于 0。
+
+### maxTolerance
+
+容忍度上限。
+
+```json
+"maxTolerance": 100
+```
+
+含义：玩家通过 A/B 评分回复容忍度后，最高不会超过这个值。界面进度条和数字分母也使用这个上限。
+
+建议：应大于等于 `initialTolerance`。如果配置得比初始值小，程序会按初始值作为实际上限。
 
 ### gradeThresholds
 
@@ -66,7 +78,7 @@ A 评分回复的容忍度。
 "gradeARecovery": 20
 ```
 
-含义：每次提交获得 A 时，回复多少容忍度。回复后不会超过初始容忍度。
+含义：每次提交获得 A 时，回复多少容忍度。回复后不会超过 `maxTolerance`。
 
 ### gradeBRecovery
 
@@ -76,7 +88,7 @@ B 评分回复的容忍度。
 "gradeBRecovery": 10
 ```
 
-含义：每次提交获得 B 时，回复多少容忍度。回复后不会超过初始容忍度。
+含义：每次提交获得 B 时，回复多少容忍度。回复后不会超过 `maxTolerance`。
 
 ### consecutiveAGradeThreshold
 
@@ -130,7 +142,7 @@ consecutiveAGradeRecoveryBonus = 10
 "selectionTimeoutPenalty": 10
 ```
 
-含义：玩家在一次选词倒计时内没有操作，倒计时归零时扣除的容忍度。这个扣分也会计入本关累计扣分，影响最终评分。
+含义：玩家在一次选词倒计时内没有操作，倒计时归零时扣除的容忍度。这个扣分不计入本关评分扣分，不影响最终 A/B/C/D/E 判定。
 
 ### levelDurationMultiplierCurve
 
@@ -182,7 +194,8 @@ value = 0.72
 
 ```json
 {
-  "initialTolerance": 100,
+  "initialTolerance": 50,
+  "maxTolerance": 100,
   "gradeThresholds": [
     { "grade": 0, "maxTotalPenalty": 0 },
     { "grade": 1, "maxTotalPenalty": 10 },

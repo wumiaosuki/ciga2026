@@ -17,7 +17,12 @@ namespace Ciga2026.Game.Gameplay
         [Tooltip("一局开始时的全局容忍度。降到 0 时游戏结束。")]
         [Min(1)]
         [SerializeField]
-        private int initialTolerance = 100;
+        private int initialTolerance = 50;
+
+        [Tooltip("全局容忍度上限。A/B 评分回复后不会超过这个值。")]
+        [Min(1)]
+        [SerializeField]
+        private int maxTolerance = 100;
 
         [Header("累计扣分评分")]
         [Tooltip("全局评分阈值。按本关累计扣分从上到下匹配，建议保持 A=0，B=10，C=30，D=50，E=70。")]
@@ -58,7 +63,7 @@ namespace Ciga2026.Game.Gameplay
         [SerializeField]
         private float initialLevelDuration = 5f;
 
-        [Tooltip("单次选词倒计时清零时扣除的容忍度，也会计入本关累计扣分。")]
+        [Tooltip("单次选词倒计时清零时扣除的容忍度，不影响本关评分扣分。")]
         [Min(0)]
         [SerializeField]
         private int selectionTimeoutPenalty = 10;
@@ -115,6 +120,11 @@ namespace Ciga2026.Game.Gameplay
         /// 一局开始时的全局容忍度。
         /// </summary>
         public int InitialTolerance => Mathf.Max(1, runtimeConfig != null ? runtimeConfig.initialTolerance : initialTolerance);
+
+        /// <summary>
+        /// 全局容忍度上限。
+        /// </summary>
+        public int MaxTolerance => Mathf.Max(InitialTolerance, runtimeConfig != null ? runtimeConfig.maxTolerance : maxTolerance);
 
         /// <summary>
         /// 全局累计扣分到评分档的阈值配置。
@@ -222,7 +232,7 @@ namespace Ciga2026.Game.Gameplay
 
                 runtimeConfig = parsedConfig;
                 runtimeLevelDurationMultiplierCurve = CreateRuntimeDurationCurve(parsedConfig.levelDurationMultiplierCurve);
-                Debug.Log($"已应用玩法 JSON 配置：{path}，初始容忍度={InitialTolerance}，基础选词时间={InitialLevelDuration:0.###}，超时扣分={SelectionTimeoutPenalty}");
+                Debug.Log($"已应用玩法 JSON 配置：{path}，初始容忍度={InitialTolerance}，容忍度上限={MaxTolerance}，基础选词时间={InitialLevelDuration:0.###}，超时扣分={SelectionTimeoutPenalty}");
             }
             catch (Exception exception)
             {
@@ -334,7 +344,8 @@ namespace Ciga2026.Game.Gameplay
         [Serializable]
         private sealed class RuntimeGameplaySessionConfig
         {
-            public int initialTolerance = 100;
+            public int initialTolerance = 50;
+            public int maxTolerance = 100;
             public List<RuntimeGradeThresholdEntry> gradeThresholds = new();
             public int gradeARecovery = 20;
             public int gradeBRecovery = 10;
